@@ -7,6 +7,8 @@ def mkdir(directory):
 
     return new_dir
 
+# ftp://ftp.sra.ebi.ac.uk/vol1/srr/SRR602/002/SRR6026772 - URL architecture for download with wget
+
 def main():
     parser = argparse.ArgumentParser(description='Script to download SRA files')
     parser.add_argument('-i', required=True, help='path to SRR accession list')
