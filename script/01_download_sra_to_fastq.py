@@ -1,13 +1,24 @@
 import argparse
 import os
 
+def mkdir(directory):
+    if not os.path.exists(directory):
+        os.system(f"mkdir -p {directory}")
+
+    return new_dir
+
 def main():
     parser = argparse.ArgumentParser(description='Script to download SRA files')
-    parser.add_argument('-i', help='path to SRR accession list')
+    parser.add_argument('-i', required=True, help='path to SRR accession list')
+    parser.add_argument('-o', default='./', help='output directory path')
+
     args = parser.parse_args()
+    outdir = mkdir(args.o)
 
     with open(str(args.i), 'r') as acc_list:
         srrs = acc_list.readlines()
+
+    os.chdir(outdir)
 
     for i, srr in enumerate(srrs):
         print(f"({i + 1}/{len(srrs)}) Downloading {srr}...")

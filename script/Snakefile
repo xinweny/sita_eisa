@@ -1,1 +1,13 @@
-rule download_sra:
+rule star_map:
+    input:
+        fa="././shared/genome/GRCh38.primary_assembly.genome.fa"
+        fastq="./data/DMSO_RNAseq_rep1.fastq"
+    output:
+
+    shell:
+        """STAR --runThreadN 8 \
+        --genomeDir {input.fa} \
+        --readFilesIn {input.fastq} \
+        --outSAMtype BAM SortedByCoordinate \
+        --outSAMunmapped Within \
+        --outSAMattributes NH HI AS nM jM jI"""

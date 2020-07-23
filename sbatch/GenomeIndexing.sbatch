@@ -28,7 +28,7 @@
 ##SBATCH --no-requeue
 
 #! For 6GB per CPU, set "-p skylake"; for 12GB per CPU, set "-p skylake-himem":
-#SBATCH -p skylake-himem
+#SBATCH -p skylake
 
 #! sbatch directives end here (put any additional directives above this line)
 
@@ -66,7 +66,7 @@ application="STAR"
 options="--runThreadN 32 --runMode genomeGenerate --genomeDir ./STAR --genomeFastaFiles ./GRCh38.primary_assembly.genome.fa --sjdbGTFfile ./gencode.v34.primary_assembly.annotation.gtf"
 
 #! Work directory (i.e. where the job will run):
-workdir="/home/xwy21/project/shared/genome/"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
+workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/shared/genome"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
                              # in which sbatch is run.
 
 #! Are you using OpenMP (NB this is unrelated to OpenMPI)? If so increase this
