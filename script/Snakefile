@@ -35,6 +35,5 @@ rule star_map:
         """
 
 # rule deseq2_normalise:
-# rule annotate:
 # count introns and exons
 # eisaR
