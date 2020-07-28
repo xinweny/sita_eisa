@@ -1,0 +1,2 @@
+FileName	SampleName
+/Users/Pomato/mrc/project/sita/data/DMSO_RNAseq_rep1.fastq	DMSO_RNAseq_rep1

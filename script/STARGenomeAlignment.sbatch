@@ -10,7 +10,7 @@
 
 #! sbatch directives begin here ###############################
 #! Name of the job:
-#SBATCH -J STARGENOMEINDEX
+#SBATCH -J STARGENOMEALIGN
 #! Which project should be charged:
 #SBATCH -A SAWARKAR-SL3-CPU
 #! How many whole nodes should be allocated?
@@ -18,9 +18,9 @@
 #! How many (MPI) tasks will there be in total? (<= nodes*32)
 #! The skylake/skylake-himem nodes have 32 CPUs (cores) each.
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=32
+#SBATCH --cpus-per-task=8
 #! How much wallclock time will be required?
-#SBATCH --time=12:00:00
+#SBATCH --time=06:00:00
 #! What types of email messages do you wish to receive?
 #SBATCH --mail-type=FAIL,BEGIN,END
 #! Uncomment this to prevent the job from being requeued (e.g. if
@@ -63,10 +63,16 @@ source activate seq
 application="STAR"
 
 #! Run options for the application:
-options="--runThreadN 32 --runMode genomeGenerate --genomeDir ./STAR --genomeFastaFiles ./GRCh38.primary_assembly.genome.fa --sjdbGTFfile ./gencode.v34.primary_assembly.annotation.gtf"
+options="--runThreadN 8 \
+        --genomeDir ../shared/genome/STAR \
+        --readFilesIn DMSO_RNAseq_rep1.fastq \
+        --outFileNamePrefix DMSO_RNAseq_rep1 \
+        --outSAMtype BAM SortedByCoordinate \
+        --outSAMunmapped Within \
+        --outSAMattributes NH HI AS nM jM jI"
 
 #! Work directory (i.e. where the job will run):
-workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/shared/genome"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
+workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/sita"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
                              # in which sbatch is run.
 
 #! Are you using OpenMP (NB this is unrelated to OpenMPI)? If so increase this

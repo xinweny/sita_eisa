@@ -5,7 +5,7 @@
 library(eisaR)
 
 # Load TxDb object
-txdbFile <- system.file("extdata", "hg19sub.sqlite", package = "eisaR")
+txdbFile <- system.file("./data/extdata", "hg19sub.sqlite", package = "eisaR")
 txdb <- AnnotationDbi::loadDb(txdbFile)
 
 # Extract filtered exonic and gene body regions
@@ -27,7 +27,7 @@ export(regS$genebodies, "hg19sub_genebodies_stranded.gtf")
 library(QuasR) # QuasR package for indexing and aligning short reads
 
 # Copy sample data from package into current directory
-file.copy(system.file(package = "QuasR", "extdata"), ".", recursive = TRUE)
+file.copy(system.file(package = "QuasR", "./data/extdata"), ".", recursive = TRUE)
 
 # Align reads to a genome
 proj <- qAlign(sampleFile = "extdata/samples_rna_single.txt",
