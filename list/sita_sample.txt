@@ -1,2 +1,3 @@
 FileName	SampleName
 /Users/Pomato/mrc/project/sita/data/DMSO_RNAseq_rep1.fastq	DMSO_RNAseq_rep1
+/Users/Pomato/mrc/project/sita/data/THAP_RNAseq_rep4.fastq	THAP_RNAseq_rep4
