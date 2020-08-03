@@ -1,10 +1,6 @@
 #### Packages ####
 library(QuasR)
-library(eisaR)
 library(TxDb.Hsapiens.UCSC.hg18.knownGene)
-library(edgeR)
-# library(EnsDb.Hsapiens.v75)
-# library(genomation) # for annotation
 
 setwd("/rds/project/rs2099/rds-rs2099-toxgenomics/sita") # "/Users/Pomato/mrc/project/sita" "/rds/project/rs2099/rds-rs2099-toxgenomics/sita"
 
@@ -12,10 +8,11 @@ setwd("/rds/project/rs2099/rds-rs2099-toxgenomics/sita") # "/Users/Pomato/mrc/pr
 proj <- qAlign(sampleFile="/home/xwy21/project/sita/list/sita_samples.txt", # "./list/sita_samples.txt" "./list/sita_sample.txt"
                genome="BSgenome.Hsapiens.UCSC.hg18",
                aligner="Rhisat2",
-               splicedAlignment=TRUE)
+               splicedAlignment=TRUE,
+               cacheDir="./cache")
 
 #### Counting exons and introns ####
-# TBD: make UI to choose
+# TBD: make UI to choose stranded vs. unstranded
 regStranded <- getRegionsFromTxDb(txdb=TxDb.Hsapiens.UCSC.hg18.knownGene, strandedData=TRUE)
 # regUnstranded <- getRegionsFromTxDb(txdb=TxDb.Hsapiens.UCSC.hg18.knownGene, strandedData=FALSE)
 
