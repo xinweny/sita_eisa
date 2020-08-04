@@ -3,7 +3,6 @@ suppressPackageStartupMessages({
   library(QuasR)
   library(TxDb.Hsapiens.UCSC.hg18.knownGene)
   library(argparser)
-  library(glue)
 })
 
 #### Parser ####
@@ -24,7 +23,11 @@ proj <- qAlign(sampleFile=args$i,
                genome="BSgenome.Hsapiens.UCSC.hg18",
                aligner="Rhisat2",
                splicedAlignment=TRUE,
+               alignmentsDir="./bam",
                cacheDir="./cache")
+
+# Output alignment stats for each bam file
+write.table(alignmentStats(proj), file="bam/AlignmentStats.txt", row.names=TRUE, col.names=TRUE)
 
 #### Counting exons and introns ####
 if (args$stranded == TRUE) {
@@ -44,7 +47,5 @@ intronCount <- genebodyCount - exonCount
 # ensemblGenes <- getBM(filters="entrezgene_id", attributes=c("ensembl_gene_id", "entrezgene_id"), values=entrezGenes, mart=ensembl)
 
 # Save counts to output
-date <- Sys.time()
-
-write.table(exonCount, file=glue::glue("processed/{date}_ExonicCounts.txt"), row.names=TRUE, col.names=TRUE)
-write.table(intronCount, file=glue::glue("processed/{date}_IntronicCounts.txt"), row.names=TRUE, col.names=TRUE)
+write.table(exonCount, file="processed/ExonicCounts.txt", row.names=TRUE, col.names=TRUE)
+write.table(intronCount, file="processed/IntronicCounts.txt", row.names=TRUE, col.names=TRUE)

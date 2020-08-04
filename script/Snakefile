@@ -1,18 +1,30 @@
-# cd /rds/project/rs2099/rds-rs2099-toxgenomics/eisa
+workdir: "/rds/project/rs2099/rds-rs2099-toxgenomics/sita/thap_hek"
 
-# rule fastq_download
-
-rule quasr_map:
+rule all:
     input:
-        sample_file = ""
+        "processed/MAplot.png",
+        "processed/DEstats.txt"
+
+rule quasr_map_count:
+    input:
+        "SampleFile.txt"
     output:
-        html = expand("{cond}_RNAseq_rep{rep}_fastqc.html",
-                    cond=conditions,
-                    rep=replicates)
+        exon = "processed/ExonicCounts.txt",
+        intron = "processed/IntronicCounts.txt"
     script:
         """
-        script/02_alignment_and_counting.R -i {input.sample_file}
+        /home/xwy21/project/sita/script/02_alignment_and_counting.R -i {input}
         """
 
-# rule eisar:
+rule run_eisa:
+    input:
+        exon = "processed/ExonicCounts.txt",
+        intron = "processed/IntronicCounts.txt"
+    output:
+        "processed/MAplot.png",
+        "processed/DEstats.txt"
+    script:
+        """
+        /home/xwy21/project/sita/script/03_eisa.R -i {input.intron} -e {input.exon}
+        """
 

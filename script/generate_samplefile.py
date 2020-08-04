@@ -16,13 +16,11 @@ File names for each read should end in _1 and _2 for each paired sample.""")
     is_paired = args.paired
     ext = args.e
 
-    cwd = os.getcwd()
-
     if is_paired:
         sample_file = pd.DataFrame(columns=['FileName1', 'FileName2', 'SampleName'])
 
-        pair1_files = [file for file in glob.glob(f"*_1.{ext}")]
-        pair2_files = [file for file in glob.glob(f"*_2.{ext}")]
+        pair1_files = [file for file in glob.glob(f"fastq/*_1.{ext}")]
+        pair2_files = [file for file in glob.glob(f"fastq/*_2.{ext}")]
 
         if len(pair1_files) != len(pair2_files):
             sys.exit("Not all samples found in pairs.")
@@ -39,7 +37,7 @@ File names for each read should end in _1 and _2 for each paired sample.""")
     else:
         sample_file = pd.DataFrame(columns=['FileName', 'SampleName'])
 
-        files = [file for file in glob.glob(f"*.{ext}")]
+        files = [file for file in glob.glob(f"fastq/*.{ext}")]
         files.sort()
 
         sample_names = [file[:-(1 + len(ext))] for file in files]

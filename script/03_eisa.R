@@ -60,8 +60,8 @@ MAplot <- ggplot(res_eisar$tab.ExIn, aes(x=logCPM, y=logFC)) +
           theme_bw()
 
 # Save output
-png("eisaMAplot.png")
+png("processed/eisaMAplot.png")
 print(MAplot)
 dev.off()
 
-head(res_eisar$tab.ExIn %>% arrange(FDR))
+res_eisar$tab.ExIn %>% arrange(FDR) %>% write.table(file="processed/DEstats.txt", sep="\t", row.names=TRUE, col.names=TRUE)
