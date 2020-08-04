@@ -1,40 +1,18 @@
-conditions = ['DMSO'] # ['DMSO', 'THAP']
-replicates = [1] # [1, 2, 3, 4]
-
 # cd /rds/project/rs2099/rds-rs2099-toxgenomics/eisa
 
-rule do_fastqc:
+# rule fastq_download
+
+rule quasr_map:
     input:
-        fastq = expand("{cond}_RNAseq_rep{rep}.fastq",
-                    cond=conditions,
-                    rep=replicates)
+        sample_file = ""
     output:
         html = expand("{cond}_RNAseq_rep{rep}_fastqc.html",
                     cond=conditions,
                     rep=replicates)
-    shell:
+    script:
         """
-        fastqc {input.fastq}
-        """
-
-rule star_map:
-    input:
-        fa = "././shared/genome/STAR"
-        fastq = expand("{cond}_RNAseq_rep{rep}.fastq",
-                    cond=conditions,
-                    rep=replicates)
-    output:
-
-    shell:
-        """STAR --runThreadN 8 \
-        --genomeDir {input.fa} \
-        --readFilesIn {input.fastq} \
-        --outFileNamePrefix {input.fastq[:-5]} \
-        --outSAMtype BAM SortedByCoordinate \
-        --outSAMunmapped Within \
-        --outSAMattributes NH HI AS nM jM jI
+        script/02_alignment_and_counting.R -i {input.sample_file}
         """
 
-# rule deseq2_normalise:
-# count introns and exons
-# eisaR
+# rule eisar:
+
