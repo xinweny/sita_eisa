@@ -1,8 +1,10 @@
 #### Packages ####
 suppressPackageStartupMessages({
   library(QuasR)
-  library(TxDb.Hsapiens.UCSC.hg18.knownGene)
+  library(eisaR)
+  library(GenomicFeatures)
   library(argparser)
+  library(AnnotationDbi)
 })
 
 #### Parser ####
@@ -20,7 +22,7 @@ stopifnot(!is.null(args$i))
 
 #### Alignment ####
 proj <- qAlign(sampleFile=args$i,
-               genome="BSgenome.Hsapiens.UCSC.hg18",
+               genome="/rds/project/rs2099/rds-rs2099-toxgenomics/shared/GRCh38.primary_assembly.genome.fa",
                aligner="Rhisat2",
                splicedAlignment=TRUE,
                alignmentsDir="./bam",
@@ -30,21 +32,25 @@ proj <- qAlign(sampleFile=args$i,
 write.table(alignmentStats(proj), file="bam/AlignmentStats.txt", row.names=TRUE, col.names=TRUE)
 
 #### Counting exons and introns ####
+# Load TxDb
+txdb <- loadDb(file='/rds/project/rs2099/rds-rs2099-toxgenomics/shared/txdb.gencode.v34.sqlite')
+
+# Select chromosomes
+# chroms <- c(1:22, "X", "Y")
+# chroms <- paste("chr", chroms, sep="") # add chr prefix
+
+# seqlevels(txdb) <- chroms
+
 if (args$stranded == TRUE) {
-  regions <- getRegionsFromTxDb(txdb=TxDb.Hsapiens.UCSC.hg18.knownGene, strandedData=TRUE)
+  regions <- getRegionsFromTxDb(txdb=txdb, strandedData=TRUE)
 } else {
-  regions <- getRegionsFromTxDb(txdb=TxDb.Hsapiens.UCSC.hg18.knownGene, strandedData=FALSE)
+  regions <- getRegionsFromTxDb(txdb=txdb, strandedData=FALSE)
 }
 
+# Counting
 exonCount <- qCount(proj, regions$exons, orientation="any", reportLevel="gene")
 genebodyCount <- qCount(proj, regions$genebodies, orientation="any", reportLevel="gene")
 intronCount <- genebodyCount - exonCount
-
-# Convert coordinates to gene name - default given in Entrez ID
-# TBD
-# ensembl <- useMart("ensembl", dataset="hsapiens_gene_ensembl")
-# entrezGenes <- rownames(exonCount)
-# ensemblGenes <- getBM(filters="entrezgene_id", attributes=c("ensembl_gene_id", "entrezgene_id"), values=entrezGenes, mart=ensembl)
 
 # Save counts to output
 write.table(exonCount, file="processed/ExonicCounts.txt", row.names=TRUE, col.names=TRUE)

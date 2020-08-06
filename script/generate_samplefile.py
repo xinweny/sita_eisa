@@ -9,7 +9,7 @@ def main():
 File names for each read should end in _1 and _2 for each paired sample.""")
     parser.add_argument('--single', dest='paired', action='store_false',
                         help="""Flag to indicate single-read RNAseq data.""")
-    parser.add_argument('-e',
+    parser.add_argument('-e', required=True,
                         help="Extension (e.g. fq, fastq)")
 
     args = parser.parse_args()
@@ -28,7 +28,7 @@ File names for each read should end in _1 and _2 for each paired sample.""")
         pair1_files.sort()
         pair2_files.sort()
 
-        sample_names = [file[:-(3 + len(ext))] for file in pair1_files]
+        sample_names = [file.split("/")[-1][:-(3 + len(ext))] for file in pair1_files]
 
         sample_file['FileName1'] = pair1_files
         sample_file['FileName2'] = pair2_files
@@ -40,7 +40,7 @@ File names for each read should end in _1 and _2 for each paired sample.""")
         files = [file for file in glob.glob(f"fastq/*.{ext}")]
         files.sort()
 
-        sample_names = [file[:-(1 + len(ext))] for file in files]
+        sample_names = [file.split("/")[-1][:-(1 + len(ext))] for file in files]
 
         sample_file['FileName'] = files
         sample_file['SampleName'] = sample_names

@@ -11,6 +11,8 @@ rule quasr_map_count:
     output:
         exon = "processed/ExonicCounts.txt",
         intron = "processed/IntronicCounts.txt"
+    shell:
+        "mkdir bam"
     script:
         """
         /home/xwy21/project/sita/script/02_alignment_and_counting.R -i {input}
