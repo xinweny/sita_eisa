@@ -5,8 +5,9 @@ suppressPackageStartupMessages({
   library(ggplot2)
   library(dplyr)
   library(argparser)
-  library(glue)
 })
+
+setwd("/Users/Pomato/mrc/project/sita/")
 
 #### Parser ####
 # p <- arg_parser("Exon-Intron Split Analysis (EISA)")
@@ -21,8 +22,8 @@ suppressPackageStartupMessages({
 #           !is.null(args$i))
 
 #### Load counts files ####
-exon <- read.table("./processed/ExonicCounts.txt", header=TRUE, sep=" ", row.names=1) # args$e
-intron <- read.table("./processed/IntronicCounts.txt", header=TRUE, sep=" ", row.names=1) #args$i
+exon <- read.table("./processed/ExonicCounts_mainhg38.txt", header=TRUE, sep=" ", row.names=1) # args$e
+intron <- read.table("./processed/IntronicCounts_mainhg38.txt", header=TRUE, sep=" ", row.names=1) #args$i
 
 exon <- exon %>% select(contains("_rep")) %>% as.matrix()
 intron <- intron %>% select(contains("_rep")) %>% as.matrix()
@@ -33,7 +34,12 @@ shared <- intersect(rownames(exon), rownames(intron))
 exonsh <- exon[shared, ]
 intronsh <- intron[shared, ]
 
-glue("No. of genes: {nrow(exonsh)}")
+message("No. of genes with ≥ 1 exon and intron: ", nrow(exonsh))
+
+# Checks
+allsh <- exonsh + intronsh
+fracIn <- colSums(intronsh)/colSums(allsh)
+summary(fracIn)
 
 # Format conditions for each sample
 cond <- gsub("_RNAseq_rep[0-9]*.*", "", colnames(exonsh))
@@ -51,6 +57,9 @@ res_eisar <- runEISA(cntEx=exonsh, cntIn=intronsh,
                      recalcNormFactAfterFilt=TRUE,
                      recalcLibSizeAfterFilt=FALSE)
 
+# Flip logFC
+res_eisar$tab.ExIn$logFC <- -(res_eisar$tab.ExIn$logFC)
+
 #### Visualisation ####
 # MA plot
 MAplot <- ggplot(res_eisar$tab.ExIn, aes(x=logCPM, y=logFC)) +
@@ -60,7 +69,7 @@ MAplot <- ggplot(res_eisar$tab.ExIn, aes(x=logCPM, y=logFC)) +
           theme_bw()
 
 ngenes <- nrow(res_eisar$tab.ExIn %>% filter(FDR < 0.05))
-glue("No. of significant DE genes (FDR < 0.05): {ngenes}")
+message("No. of significant DE genes (FDR < 0.05): ", ngenes)
 
 # Save output
 # png("./processed/eisaMAplot.png")

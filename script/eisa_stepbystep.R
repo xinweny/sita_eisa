@@ -9,32 +9,33 @@ library(stringr)
 setwd("/Users/Pomato/mrc/project/sita")
 
 #### Load count files ####
-exon <- read.table("processed/ExonicCounts_THAP_HEK.txt",
+exon <- read.table("processed/ExonicCounts_THAP_HEK_barbara.txt",
                    header=TRUE,
-                   sep=" ",
+                   sep="\t",
                    row.names=1)
-intron <- read.table("processed/IntronicCounts_THAP_HEK.txt",
+intron <- read.table("processed/IntronicCounts_THAP_HEK_barbara.txt",
                      header=TRUE,
-                     sep=" ",
+                     sep="\t",
                      row.names=1)
 
-# Remove "width" column
-exon <- exon[, colnames(exon) != "width"]
-intron <- intron[, colnames(intron) != "width"]
+# Filter for genes with at least 1 intron and exon
+shared <- intersect(rownames(exon), rownames(intron))
+exonsh <- exon[shared, ]
+intronsh <- intron[shared, ]
+
+# Remove extra columns
+cntEx <- exonsh %>% select(contains("_rep")) %>% as.matrix()
+cntIn <- intronsh %>% select(contains("_rep")) %>% as.matrix()
 
 # Conditions
 cond <- gsub("_RNAseq_rep[0-9]*.*", "", colnames(exon))
 cond <- factor(cond, levels=unique(cond))
 
-# Convert to matrix
-cntEx <- as.matrix(exon)
-cntIn <- as.matrix(intron)
-
 # No. of samples
 nsmpls <- ncol(cntEx)
 
 # See fraction of introns
-all <- exon + intron
+all <- cntEx + cntIn
 fracInt <- colSums(intron) / colSums(all)
 summary(fracInt)
 
