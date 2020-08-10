@@ -10,7 +10,7 @@
 
 #! sbatch directives begin here ###############################
 #! Name of the job:
-#SBATCH -J QUASRALIGNCOUNT
+#SBATCH -J FASTQDOWNLOAD
 #! Which project should be charged:
 #SBATCH -A SAWARKAR-SL3-CPU
 #! How many whole nodes should be allocated?
@@ -18,9 +18,9 @@
 #! How many (MPI) tasks will there be in total? (<= nodes*32)
 #! The skylake/skylake-himem nodes have 32 CPUs (cores) each.
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=8
 #! How much wallclock time will be required?
-#SBATCH --time=06:00:00
+#SBATCH --time=03:00:00
 #! What types of email messages do you wish to receive?
 #SBATCH --mail-type=FAIL,BEGIN,END
 #! Uncomment this to prevent the job from being requeued (e.g. if
@@ -63,13 +63,10 @@ module load r-4.0.2-gcc-5.4.0-xyx46xb
 source activate seq
 
 #! Full path to application executable:
-application="Rscript"
+application="python3"
 
 #! Run options for the application:
-options="/home/xwy21/project/sita/script/02_alignment_and_counting.R -i SampleFile.txt \
--g /rds/project/rs2099/rds-rs2099-toxgenomics/shared/human/GRCh38.primary_assembly.genome.fa \
--a /rds/project/rs2099/rds-rs2099-toxgenomics/shared/human/txdb.hg38.gencode.v34.sqlite \
---stranded"
+options="/home/xwy21/project/sita/script/01_download_sra_to_fastq.py -i SRR_Acc_List.txt"
 
 #! Work directory (i.e. where the job will run):
 workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/sita/naprt_macrophage"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory

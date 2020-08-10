@@ -22,8 +22,8 @@ setwd("/Users/Pomato/mrc/project/sita/")
 #           !is.null(args$i))
 
 #### Load counts files ####
-exon <- read.table("./processed/ExonicCounts_mainhg38.txt", header=TRUE, sep=" ", row.names=1) # args$e
-intron <- read.table("./processed/IntronicCounts_mainhg38.txt", header=TRUE, sep=" ", row.names=1) #args$i
+exon <- read.table("./processed/ExonicCounts_THAP_HEK_barbara.txt", header=TRUE, sep="\t", row.names=1) # args$e
+intron <- read.table("./processed/IntronicCounts_THAP_HEK_barbara.txt", header=TRUE, sep="\t", row.names=1) #args$i
 
 exon <- exon %>% select(contains("_rep")) %>% as.matrix()
 intron <- intron %>% select(contains("_rep")) %>% as.matrix()
@@ -72,9 +72,9 @@ ngenes <- nrow(res_eisar$tab.ExIn %>% filter(FDR < 0.05))
 message("No. of significant DE genes (FDR < 0.05): ", ngenes)
 
 # Save output
-# png("./processed/eisaMAplot.png")
-# print(MAplot)
-# dev.off()
+png("./processed/eisaMAplot.png")
+print(MAplot)
+dev.off()
 
 deGenes <- res_eisar$tab.ExIn %>% arrange(FDR)
-# write.table(deGenes, file="./processed/DEstats.txt", sep="\t", row.names=TRUE, col.names=TRUE)
+write.table(deGenes, file="./processed/DEstats.txt", sep="\t", row.names=TRUE, col.names=TRUE)
