@@ -5,6 +5,7 @@ suppressPackageStartupMessages({
   library(GenomicFeatures)
   library(argparser)
   library(AnnotationDbi)
+  library(stringr)
 })
 
 #### Parser ####
@@ -12,21 +13,32 @@ p <- arg_parser("QuasR alignment and counting for EISA")
 
 p <- add_argument(p, "-i",
                   help="path to sample file")
-p <- add_argument(p, "--stranded", flag=TRUE,
-                  help="labels RNAseq data as stranded")
-p <- add_argument(p, "-g",
-                  help="path to genome file (.fa, .fasta)")
-p <- add_argument(p, "-a",
-                  help="path to annotation file (txdb sqlite format)")
+p <- add_argument(p, "-m",
+                  help="model organism (human or mouse)")
 
 args <- parse_args(p)
 
-# Check if arguments are provided
-stopifnot(!is.null(args$i))
+stopifnot(args$m == "human" | args$m == "mouse")
+
+# Make sure SampleFile exists
+if (!file.exists("SampleFile.txt")) {
+  system("python3 /home/xwy21/project/sita/script/generate_samplefile.py -e fastq")
+  args$i <- "SampleFile.txt"
+}
+
+if (args$m == "human") {
+  genomeFile <- "/rds/project/rs2099/rds-rs2099-toxgenomics/shared/human/GRCh38.primary_assembly.genome.fa"
+  txdb <- loadDb(file="/rds/project/rs2099/rds-rs2099-toxgenomics/shared/human/txdb.hg38.gencode.v34.sqlite")
+  bedGenome <- "/rds/project/rs2099/rds-rs2099-toxgenomics/shared/human/hg38_Gencode_V24.bed"
+} else {
+  genomeFile <- "/rds/project/rs2099/rds-rs2099-toxgenomics/shared/mouse/GRCm38.primary_assembly.genome.fa"
+  txdb <- loadDb(file="/rds/project/rs2099/rds-rs2099-toxgenomics/shared/mouse/txdb.gencode.vM25.annotation.sqlite")
+  bedGenome <- "/rds/project/rs2099/rds-rs2099-toxgenomics/shared/mouse/mm10_Gencode_VM18.bed"
+}
 
 #### Alignment ####
 proj <- qAlign(sampleFile=args$i,
-               genome=args$g,
+               genome=genomeFile,
                aligner="Rhisat2",
                splicedAlignment=TRUE,
                alignmentsDir="./bam",
@@ -36,24 +48,24 @@ proj <- qAlign(sampleFile=args$i,
 write.table(alignmentStats(proj), file="bam/AlignmentStats.txt", row.names=TRUE, col.names=TRUE)
 
 #### Counting exons and introns ####
-# Load TxDb
-txdb <- loadDb(file=args$a)
+# Check strandedness
+bamFile <- Sys.glob("*.bam")[1]
+rseqcOutput <- system(glue("infer_experiment.py -r {bedGenome} -i {bamFile}"), intern=TRUE)
+percSameStrand <- as.numeric(tail(strsplit(rseqcOutput[5], " ")[[1]], n=1))
+stranded <- percSameStrand > 0.9
 
-# Select chromosomes
-# chroms <- c(1:22, "X", "Y")
-# chroms <- paste("chr", chroms, sep="") # add chr prefix
-
-# seqlevels(txdb) <- chroms
-
-if (args$stranded == TRUE) {
+# getRegionsFromTxDb also filters out genes with only 1 exon, have exons on > 1 chromosome/both strands and overlapping genes
+if (stranded == TRUE) {
   regions <- getRegionsFromTxDb(txdb=txdb, strandedData=TRUE)
+  orient <- "same"
 } else {
   regions <- getRegionsFromTxDb(txdb=txdb, strandedData=FALSE)
+  orient <- "any"
 }
 
 # Counting
-exonCount <- qCount(proj, regions$exons, orientation="any", reportLevel="gene")
-genebodyCount <- qCount(proj, regions$genebodies, orientation="any", reportLevel="gene")
+exonCount <- qCount(proj, regions$exons, orientation=orient, reportLevel="gene")
+genebodyCount <- qCount(proj, regions$genebodies, orientation=orient, reportLevel="gene")
 intronCount <- genebodyCount - exonCount
 
 # Save counts to output

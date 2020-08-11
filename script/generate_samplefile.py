@@ -4,17 +4,15 @@ import os, glob, sys
 
 def main():
     parser = argparse.ArgumentParser(description='Generate QuasR-format sample file.')
-    parser.add_argument('--paired', default=False, action='store_true',
-                        help="""Flag to indicate paired-end RNAseq data.
-File names for each read should end in _1 and _2 for each paired sample.""")
-    parser.add_argument('--single', dest='paired', action='store_false',
-                        help="""Flag to indicate single-read RNAseq data.""")
     parser.add_argument('-e', required=True,
                         help="Extension (e.g. fq, fastq)")
 
     args = parser.parse_args()
-    is_paired = args.paired
     ext = args.e
+    metadata_path = args.m
+
+    metadata_df = pd.read_csv(metadata_path, header=0, sep=',')
+    is_paired = True if metadata_df['LibraryLayout'][0] == "PAIRED" else False
 
     if is_paired:
         sample_file = pd.DataFrame(columns=['FileName1', 'FileName2', 'SampleName'])

@@ -22,8 +22,8 @@ setwd("/Users/Pomato/mrc/project/sita/")
 #           !is.null(args$i))
 
 #### Load counts files ####
-exon <- read.table("./processed/ExonicCounts_THAP_HEK_barbara.txt", header=TRUE, sep="\t", row.names=1) # args$e
-intron <- read.table("./processed/IntronicCounts_THAP_HEK_barbara.txt", header=TRUE, sep="\t", row.names=1) #args$i
+exon <- read.table("./processed/ExonicCounts.txt", header=TRUE, sep="\t", row.names=1) # args$e
+intron <- read.table("./processed/IntronicCounts.txt", header=TRUE, sep="\t", row.names=1) #args$i
 
 exon <- exon %>% select(contains("_rep")) %>% as.matrix()
 intron <- intron %>% select(contains("_rep")) %>% as.matrix()

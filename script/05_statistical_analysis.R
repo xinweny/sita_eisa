@@ -7,7 +7,7 @@ library(dplyr)
 setwd("/Users/Pomato/mrc/project/sita")
 
 barbaraRes <- read.table("./processed/DEstats_barbara.txt", header=TRUE, sep="\t", row.names=1)
-currentRes <- read.table("./processed/DEstats_xwy.txt", header=TRUE, sep="\t", row.names=1)
+currentRes <- read.table("./processed/DEstats.txt", header=TRUE, sep="\t", row.names=1)
 
 #### Checks ####
 barbaraSigRes <- barbaraRes %>% filter(FDR < 0.05)
