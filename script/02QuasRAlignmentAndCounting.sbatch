@@ -20,7 +20,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #! How much wallclock time will be required?
-#SBATCH --time=04:00:00
+#SBATCH --time=06:00:00
 #! What types of email messages do you wish to receive?
 #SBATCH --mail-type=FAIL,BEGIN,END
 #! Uncomment this to prevent the job from being requeued (e.g. if
@@ -66,10 +66,10 @@ source activate seq
 application="Rscript /home/xwy21/project/sita/script/02_alignment_and_counting.R"
 
 #! Run options for the application:
-options="-i SampleFile.txt -m mouse"
+options="-i SampleFile.txt -m SraRunTable.txt"
 
 #! Work directory (i.e. where the job will run):
-workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/sita/lps_mouse_microglia"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
+workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/sita/lps_2h4h_mousemicroglia"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
                              # in which sbatch is run.
 
 #! Are you using OpenMP (NB this is unrelated to OpenMPI)? If so increase this

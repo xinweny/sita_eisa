@@ -4,6 +4,8 @@ import os, glob, sys
 
 def main():
     parser = argparse.ArgumentParser(description='Generate QuasR-format sample file.')
+    parser.add_argument('-m', required=True,
+                        help="Path to SraRunTable")
     parser.add_argument('-e', required=True,
                         help="Extension (e.g. fq, fastq)")
 

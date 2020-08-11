@@ -1,4 +1,4 @@
-workdir: "/rds/project/rs2099/rds-rs2099-toxgenomics/sita/thap_hek"
+workdir: "/rds/project/rs2099/rds-rs2099-toxgenomics/sita/{config['dir']}"
 
 rule all:
     input:
@@ -7,16 +7,14 @@ rule all:
 
 rule quasr_map_count:
     input:
-        "SampleFile.txt"
+        sample_file = "SampleFile.txt"
+        metadata = "SraRunTable.txt"
     output:
         exon = "processed/ExonicCounts.txt",
         intron = "processed/IntronicCounts.txt"
-    shell:
-        "mkdir bam"
     script:
-        """
-        /home/xwy21/project/sita/script/02_alignment_and_counting.R -i {input}
-        """
+        "/home/xwy21/project/sita/script/generate_samplefile.py -m {input.metadata} -e fastq"
+        "/home/xwy21/project/sita/script/02_alignment_and_counting.R -i {input.sample_file} -m {input.metadata}"
 
 rule run_eisa:
     input:
@@ -26,7 +24,5 @@ rule run_eisa:
         "processed/MAplot.png",
         "processed/DEstats.txt"
     script:
-        """
-        /home/xwy21/project/sita/script/03_eisa.R -i {input.intron} -e {input.exon}
-        """
+        "/home/xwy21/project/sita/script/03_eisa.R -i {input.intron} -e {input.exon}"
 
