@@ -18,9 +18,9 @@
 #! How many (MPI) tasks will there be in total? (<= nodes*32)
 #! The skylake/skylake-himem nodes have 32 CPUs (cores) each.
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=2
 #! How much wallclock time will be required?
-#SBATCH --time=03:00:00
+#SBATCH --time=02:00:00
 #! What types of email messages do you wish to receive?
 #SBATCH --mail-type=FAIL,BEGIN,END
 #! Uncomment this to prevent the job from being requeued (e.g. if
@@ -69,7 +69,7 @@ application="python3 /home/xwy21/project/sita/script/01_download_sra_to_fastq.py
 options="-i SRR_Acc_List.txt -m SraRunTable.txt"
 
 #! Work directory (i.e. where the job will run):
-workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/sita/lps_2h4h_mousemicroglia"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
+workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/sita/$DIR"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
                              # in which sbatch is run.
 
 #! Are you using OpenMP (NB this is unrelated to OpenMPI)? If so increase this

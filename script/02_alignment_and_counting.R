@@ -18,6 +18,8 @@ p <- add_argument(p, "-m",
 
 args <- parse_args(p)
 
+gse <- tail(strsplit(getwd(), "/")[[1]], n=1)
+
 # Make sure SampleFile exists
 if (!file.exists(args$i)) {
   system(glue("python3 /home/xwy21/project/sita/script/generate_samplefile.py -m {args$m} -e fastq"))
@@ -74,5 +76,5 @@ genebodyCount <- qCount(proj, regions$genebodies, orientation=orient, reportLeve
 intronCount <- genebodyCount - exonCount
 
 # Save counts to output
-write.table(exonCount, file="processed/ExonicCounts.txt", row.names=TRUE, col.names=TRUE, sep="\t")
-write.table(intronCount, file="processed/IntronicCounts.txt", row.names=TRUE, col.names=TRUE, sep="\t")
+write.table(exonCount, file=glue("processed/ExonicCounts_{gse}.txt"), row.names=TRUE, col.names=TRUE, sep="\t")
+write.table(intronCount, file=glue("processed/IntronicCounts_{gse}.txt"), row.names=TRUE, col.names=TRUE, sep="\t")

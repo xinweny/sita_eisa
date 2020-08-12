@@ -1,4 +1,5 @@
-workdir: "/rds/project/rs2099/rds-rs2099-toxgenomics/sita/{config['dir']}"
+workdir: "/rds/project/rs2099/rds-rs2099-toxgenomics/sita/" + config['dir']
+localrules: all, run_eisa
 
 rule all:
     input:
@@ -7,14 +8,15 @@ rule all:
 
 rule quasr_map_count:
     input:
-        sample_file = "SampleFile.txt"
+        sample_file = "SampleFile.txt",
         metadata = "SraRunTable.txt"
     output:
         exon = "processed/ExonicCounts.txt",
         intron = "processed/IntronicCounts.txt"
-    script:
-        "/home/xwy21/project/sita/script/generate_samplefile.py -m {input.metadata} -e fastq"
-        "/home/xwy21/project/sita/script/02_alignment_and_counting.R -i {input.sample_file} -m {input.metadata}"
+    threads: 16
+    run:
+        shell("python3 /home/xwy21/project/sita/script/generate_samplefile.py -m {input.metadata} -e fastq")
+        shell("Rscript /home/xwy21/project/sita/script/02_alignment_and_counting.R -i {input.sample_file} -m {input.metadata}")
 
 rule run_eisa:
     input:
@@ -23,6 +25,6 @@ rule run_eisa:
     output:
         "processed/MAplot.png",
         "processed/DEstats.txt"
-    script:
-        "/home/xwy21/project/sita/script/03_eisa.R -i {input.intron} -e {input.exon}"
+    run:
+        shell("Rscript /home/xwy21/project/sita/script/03_eisa.R -i {input.intron} -e {input.exon}")
 
