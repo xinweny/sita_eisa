@@ -66,10 +66,10 @@ source activate seq
 application="Rscript /home/xwy21/project/sita/script/02_alignment_and_counting.R"
 
 #! Run options for the application:
-options="-i SampleFile.txt -m SraRunTable.txt"
+options="-m SraRunTable_$GSE.txt"
 
 #! Work directory (i.e. where the job will run):
-workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/sita/$DIR"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
+workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/sita/$GSE"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
                              # in which sbatch is run.
 
 #! Are you using OpenMP (NB this is unrelated to OpenMPI)? If so increase this

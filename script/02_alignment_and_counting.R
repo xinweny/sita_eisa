@@ -11,8 +11,6 @@ suppressPackageStartupMessages({
 #### Parser ####
 p <- arg_parser("QuasR alignment and counting for EISA")
 
-p <- add_argument(p, "-i",
-                  help="path to sample file")
 p <- add_argument(p, "-m",
                   help="path to SraRunTable.txt metadata file")
 
@@ -20,11 +18,8 @@ args <- parse_args(p)
 
 gse <- tail(strsplit(getwd(), "/")[[1]], n=1)
 
-# Make sure SampleFile exists
-if (!file.exists(args$i)) {
-  system(glue("python3 /home/xwy21/project/sita/script/generate_samplefile.py -m {args$m} -e fastq"))
-  args$i <- "SampleFile.txt"
-}
+# Make SampleFile
+system(glue("python3 /home/xwy21/project/sita/script/generate_samplefile.py -m {args$m} -e fastq"))
 
 metadata <- read.table(args$m, header=TRUE, sep=",")
 organism <- metadata$Organism[1]
@@ -41,7 +36,7 @@ if (organism == "Homo sapiens") {
 }
 
 #### Alignment ####
-proj <- qAlign(sampleFile=args$i,
+proj <- qAlign(sampleFile="SampleFile.txt",
                genome=genomeFile,
                aligner="Rhisat2",
                splicedAlignment=TRUE,

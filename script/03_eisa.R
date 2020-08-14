@@ -74,8 +74,8 @@ MAplot <- ggplot(res_eisar$tab.ExIn, aes(x=logCPM, y=logFC)) +
           geom_point(data=res_eisar$tab.ExIn %>% filter(FDR < 0.05),
                      color="red") +
           labs(title=glue("{conditions[1]} vs. {conditions[2]}")) +
-          theme(plot.title=element_text(size=20)) +
-          theme_bw()
+          theme_bw() +
+          theme(plot.title=element_text(size=15, face="bold"))
 
 ngenes <- nrow(res_eisar$tab.ExIn %>% filter(FDR < 0.05))
 message("No. of significant DE genes (FDR < 0.05): ", ngenes)
