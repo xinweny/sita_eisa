@@ -8,7 +8,7 @@ suppressPackageStartupMessages({
   library(glue)
 })
 
-setwd("/Users/Pomato/mrc/project/sita/");
+setwd("/Users/Pomato/mrc/project/sita/")
 
 #### Parser ####
 # p <- arg_parser("Exon-Intron Split Analysis (EISA)")
@@ -29,11 +29,8 @@ conditions <- c("NT", "LPS") # control vs. treatment
 exon <- read.table(glue("./processed/ExonicCounts_{gse}.txt"), header=TRUE, sep="\t", row.names=1) # args$e
 intron <- read.table(glue("./processed/IntronicCounts_{gse}.txt"), header=TRUE, sep="\t", row.names=1) #args$i
 
-exon <- exon %>% select(contains(conditions))
-intron <- intron %>% select(contains(conditions))
-
-exon <- exon %>% select(contains("_rep")) %>% as.matrix()
-intron <- intron %>% select(contains("_rep")) %>% as.matrix()
+exon <- exon %>% select(contains(conditions)) %>% as.matrix()
+intron <- intron %>% select(contains(conditions)) %>% as.matrix()
 
 #### Run EISA ####
 # Filter for genes which have both exons and introns counted
@@ -48,9 +45,8 @@ allsh <- exonsh + intronsh
 fracIn <- colSums(intronsh)/colSums(allsh)
 summary(fracIn)
 
-# Format conditions for each sample
+# Format and select conditions for each sample
 cond <- gsub("_rep[0-9]*.*", "", colnames(exonsh))
-
 stopifnot(all(colnames(exonsh) == colnames(intronsh)))
 
 res_eisar <- runEISA(cntEx=exonsh, cntIn=intronsh,
@@ -77,13 +73,7 @@ MAplot <- ggplot(res_eisar$tab.ExIn, aes(x=logCPM, y=logFC)) +
           theme_bw() +
           theme(plot.title=element_text(size=15, face="bold"))
 
-ngenes <- nrow(res_eisar$tab.ExIn %>% filter(FDR < 0.05))
-message("No. of significant DE genes (FDR < 0.05): ", ngenes)
-
 # Save output
-png(glue("./processed/eisaMAplot_{gse}.png"))
+png(glue("./processed/eisaMAplot_{gse}_{conditions[1]}.{conditions[2]}.png"))
 print(MAplot)
 dev.off()
-
-deGenes <- res_eisar$tab.ExIn %>% arrange(FDR)
-write.table(deGenes, file=glue("./processed/DEstats_{gse}.txt"), sep="\t", row.names=TRUE, col.names=TRUE)

@@ -21,7 +21,8 @@ for table in tables:
         text = [cell.text for cell in cells]
         gsm_sample[text[0]] = text[1]
 
-print(f"No. of samples: {len(gsm_sample)}")
+counter = 1
 
 for gsm, name in gsm_sample.items():
-    print(f"{gsm} - {name}")
+    print(f"{counter}. {gsm} - {name}")
+    counter += 1
