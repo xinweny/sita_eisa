@@ -70,9 +70,11 @@ MAplot <- ggplot(res_eisar$tab.ExIn, aes(x=logCPM, y=logFC)) +
   geom_point(color="lightgrey") +
   geom_point(data=res_eisar$tab.ExIn %>% filter(FDR < 0.05),
              color="red") +
-  labs(title=glue("{conditions[1]} vs. {conditions[2]}")) +
+  labs(title=glue("{conditions[1]} vs. {conditions[2]}"),
+       subtitle=glue("UP={nrow(filter(res_eisar$tab.ExIn, FDR < 0.05 & logFC > 0))}, DOWN={nrow(filter(res_eisar$tab.ExIn, FDR < 0.05 & logFC < 0))}")) +
   theme_bw() +
-  theme(plot.title=element_text(size=15, face="bold"))
+  theme(plot.title=element_text(size=15, face="bold"),
+        plot.subtitle=element_text())
 
 MAplot
 
