@@ -16,6 +16,7 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(glue)
   library(DESeq2)
+  library(biomaRt)
 })
 ```
 
@@ -28,8 +29,8 @@ conditions <- c("PBS", "LPS") # control vs. treatment
 exon <- read.table(glue("processed/ExonicCounts_{gse}.txt"), header=TRUE, sep="\t", row.names=1)
 intron <- read.table(glue("processed/IntronicCounts_{gse}.txt"), header=TRUE, sep="\t", row.names=1)
 
-exon <- exon %>% select(contains(conditions)) %>% as.matrix()
-intron <- intron %>% select(contains(conditions)) %>% as.matrix()
+exon <- exon %>% dplyr::select(contains(conditions)) %>% as.matrix()
+intron <- intron %>% dplyr::select(contains(conditions)) %>% as.matrix()
 ```
 
 ## EISA
@@ -70,11 +71,11 @@ MAplot <- ggplot(res_eisar$tab.ExIn, aes(x=logCPM, y=logFC)) +
   geom_point(color="lightgrey") +
   geom_point(data=res_eisar$tab.ExIn %>% filter(FDR < 0.05),
              color="red") +
-  labs(title=glue("{conditions[1]} vs. {conditions[2]}"),
-       subtitle=glue("UP={nrow(filter(res_eisar$tab.ExIn, FDR < 0.05 & logFC > 0))}, DOWN={nrow(filter(res_eisar$tab.ExIn, FDR < 0.05 & logFC < 0))}")) +
+  labs(title=glue("{gse}: {conditions[1]} vs. {conditions[2]}"),
+       caption=glue("UP={nrow(filter(res_eisar$tab.ExIn, FDR < 0.05 & logFC > 0))}, DOWN={nrow(filter(res_eisar$tab.ExIn, FDR < 0.05 & logFC < 0))}")) +
   theme_bw() +
   theme(plot.title=element_text(size=15, face="bold"),
-        plot.subtitle=element_text())
+        plot.caption=element_text(size=15))
 
 MAplot
 
@@ -97,7 +98,7 @@ dataset <- DESeqDataSetFromMatrix(countData=exon,
                                   colData=colData,
                                   design= ~ batch + condition)
 
-dataset <- dataset[rowSums(counts(dataset)) >= 10, ] # pre-filter genes with very few reads
+dataset <- dataset[rowSums(counts(dataset)) >= 10, ] # pre-filter genes with no reads
 
 ## Run DESeq
 dds <- DESeq(dataset)
@@ -107,6 +108,27 @@ res <- res[complete.cases(res), ] # remove any rows with NA
 
 summary(res)
 message("No. of significant DE genes (FDR < 0.05): ", sum(res$padj < 0.05, na.rm=TRUE))
+
+# Add gene names
+row.names(res) <- gsub("\\.[0-9]*", "", rownames(res))
+genes <- row.names(res)
+
+if (grepl("ENSG", genes[1], fixed=TRUE)) {
+  ensemblDataset <- "hsapiens_gene_ensembl"
+  symbol <- "hgnc_symbol"
+} else if (grepl("ENSMUSG", genes[1], fixed=TRUE)) {
+  ensemblDataset <- "mmusculus_gene_ensembl"
+  symbol <- "mgi_symbol"
+}
+
+mart <- useDataset(ensemblDataset, useMart("ENSEMBL_MART_ENSEMBL", host="www.ensembl.org"))
+geneList <- getBM(filters="ensembl_gene_id",
+                  attributes=c("ensembl_gene_id", symbol),
+                  values=genes,
+                  mart=mart)
+
+geneList <- geneList[order(row.names(res)), ]
+res$geneSymbol <- geneList[2]
 
 # Save DESeq results table to output
 res <- res[order(res$padj), ] # order by adjusted p-value
