@@ -20,8 +20,12 @@ args <- parse_args(p)
 gse <- tail(strsplit(getwd(), "/")[[1]], n=1)
 
 # Make SampleFile
-system(glue("python3 /home/xwy21/project/sita/script/generate_samplefile.py -m {args$m} -e fastq"))
 sampleFiles <- Sys.glob("SampleFile*.txt")
+
+if (length(sampleFiles) == 0) {
+  system(glue("python3 /home/xwy21/project/sita/script/generate_samplefile.py -m {args$m} -e fastq"))
+  sampleFiles <- Sys.glob("SampleFile*.txt")
+}
 
 metadata <- read.table(args$m, header=TRUE, sep=",")
 organism <- metadata$Organism[1]
@@ -81,8 +85,8 @@ for (sampleFile in sampleFiles) {
   intronCount <- genebodyCount - exonCount
   
   # Remove width column
-  exonCount$width <- NULL
-  intronCount$width <- NULL
+  exonCount <- exonCount[, -1]
+  intronCount <- intronCount[, -1]
   
   if (length(sampleFiles) > 1) {
     exonCountList[[length(exonCountList) + 1]] <- exonCount

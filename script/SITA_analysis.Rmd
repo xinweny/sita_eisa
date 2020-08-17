@@ -1,0 +1,22 @@
+---
+title: "SITA Analysis with EISA and DESeq"
+output: html_notebook
+---
+
+
+
+```{r}
+suppressPackageStartupMessages({
+  library(edgeR)
+  library(eisaR)
+  library(ggplot2)
+  library(dplyr)
+  library(argparser)
+  library(glue)
+  library(DESeq2)
+})
+
+setwd("/Users/Pomato/mrc/project/sita/")
+```
+
+

@@ -8,8 +8,8 @@ suppressPackageStartupMessages({
 setwd("/Users/Pomato/mrc/project/sita/")
 
 #### Load data ####
-gse <- "GSE103719"
-conditions <- c("DMSO", "THAP")
+gse <- "GSE109834"
+conditions <- c("PBS", "LPS")
 
 countData <- read.table(glue("./processed/ExonicCounts_{gse}.txt"), header=TRUE, sep="\t", row.names=1)
 selectedCountData <- countData %>% select(contains(conditions)) %>% as.matrix()

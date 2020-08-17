@@ -6,7 +6,7 @@ do
     echo "submitting job for $GSE"
     command="sbatch --export=GSE=$GSE \
     --job-name=MAPCOUNT-$GSE \
-    --output=./log/$GSE_aligncount.out \
+    --output=log/$GSE_aligncount.out \
     02QuasRAlignmentAndCounting.sbatch"
     echo $command
     $command

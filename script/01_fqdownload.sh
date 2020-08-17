@@ -6,7 +6,7 @@ do
     echo "submitting job for $GSE"
     command="sbatch --export=GSE=$GSE \
     --job-name=FQ-$GSE \
-    --output=./log/$GSE_fqdownload.out \
+    --output=log/$GSE_fqdownload.out \
     01FastqDownload.sbatch"
     echo $command
     $command
