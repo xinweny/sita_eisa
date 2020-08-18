@@ -6,6 +6,7 @@ suppressPackageStartupMessages({
   library(argparser)
   library(AnnotationDbi)
   library(glue)
+  library(dyplr)
 })
 
 #### Parser ####
@@ -87,6 +88,38 @@ for (sampleFile in sampleFiles) {
   # Remove width column
   exonCount <- exonCount[, -1]
   intronCount <- intronCount[, -1]
+  
+  # Remove version from genes
+  row.names(exonCount) <- gsub("\\.[0-9]*", "", rownames(exonCount))
+  row.names(intronCount) <- gsub("\\.[0-9]*", "", rownames(intronCount))
+  
+  if (grepl("PAIRED", sampleFile, fixed=TRUE)) {
+    counts <- c(exonCount, intronCount)
+    
+    countsList <- list()
+    
+    for (count in counts) {
+      row.names(count) <- count[, 1]
+      count[, 1] <- NULL
+      
+      xcols <- count %>% dplyr::select(contains(".x")) %>% colnames()
+      ycols <- count %>% dplyr::select(contains(".y")) %>% colnames()
+      newcols <- gsub("\\.x", "", xcols)
+      
+      for (i in seq_along(newcols)) {
+        newcol <- as.data.frame(rowSums(count[, c(xcols[i], ycols[i])]))
+        names(newcol) <- newcols[i]
+        count <- cbind(count, newcol)
+      }
+      
+      count <- subset(count, select=newcols)
+      
+      countsList[[length(countsList) + 1]] <- count
+    }
+    
+    exonCount <- countsList[[1]]
+    intronCount <- countsList[[2]]
+  }
   
   if (length(sampleFiles) > 1) {
     exonCountList[[length(exonCountList) + 1]] <- exonCount

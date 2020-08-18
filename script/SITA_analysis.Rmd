@@ -20,17 +20,46 @@ suppressPackageStartupMessages({
 })
 ```
 
+## Functions
+```{r}
+add_ensembl_symbol <- function (table) {
+  genes <- row.names(table)
+  
+  if (grepl("ENSG", genes[1], fixed=TRUE)) {
+    ensemblDataset <- "hsapiens_gene_ensembl"
+    symbol <- "hgnc_symbol"
+  } else if (grepl("ENSMUSG", genes[1], fixed=TRUE)) {
+    ensemblDataset <- "mmusculus_gene_ensembl"
+    symbol <- "mgi_symbol"
+  }
+  
+  mart <- useDataset(ensemblDataset, useMart("ENSEMBL_MART_ENSEMBL", host="www.ensembl.org"))
+  geneList <- getBM(filters="ensembl_gene_id",
+                    attributes=c("ensembl_gene_id", symbol),
+                    values=genes,
+                    mart=mart)
+  
+  row.names(geneList) <- geneList[, 1]
+  geneList[, 1] <- NULL
+  
+  table$geneSymbol <- geneList[, 1][match(rownames(table), rownames(geneList))]
+  newTable <- table
+  
+  return(newTable)
+}
+```
+
 ## Load count data
 Takes raw count tables of introns and exons obtained using the package QuasR. Details on how to obtain count tables for this analysis [here](https://rdrr.io/github/fmicompbio/eisaR/f/vignettes/eisaR.Rmd).
 ```{r load.data}
-gse <- "GSE109834"
-conditions <- c("PBS", "LPS") # control vs. treatment
+gse <- "GSE123262"
+conditions <- c("Ctrl", "^LPS") # control vs. treatment
 
 exon <- read.table(glue("processed/ExonicCounts_{gse}.txt"), header=TRUE, sep="\t", row.names=1)
 intron <- read.table(glue("processed/IntronicCounts_{gse}.txt"), header=TRUE, sep="\t", row.names=1)
 
-exon <- exon %>% dplyr::select(contains(conditions)) %>% as.matrix()
-intron <- intron %>% dplyr::select(contains(conditions)) %>% as.matrix()
+exon <- exon %>% dplyr::select(matches(conditions)) %>% as.matrix()
+intron <- intron %>% dplyr::select(matches(conditions)) %>% as.matrix()
 ```
 
 ## EISA
@@ -66,6 +95,9 @@ res_eisar <- runEISA(cntEx=exonsh, cntIn=intronsh,
 # Flip logFC
 res_eisar$tab.ExIn$logFC <- -(res_eisar$tab.ExIn$logFC)
 
+# Add gene symbol
+res_eisar$tab.ExIn <- add_ensembl_symbol(res_eisar$tab.ExIn)
+
 # EISA MA plot
 MAplot <- ggplot(res_eisar$tab.ExIn, aes(x=logCPM, y=logFC)) +
   geom_point(color="lightgrey") +
@@ -83,6 +115,9 @@ MAplot
 png(glue("processed/eisaMAplot_{gse}_{conditions[1]}.{conditions[2]}.png"))
 print(MAplot)
 dev.off()
+
+deGenes <- res_eisar$tab.ExIn %>% arrange(FDR, -logFC)
+write.table(deGenes, file=glue("./processed/eisaDE_{gse}_{conditions[1]}.{conditions[2]}.txt"), sep="\t", row.names=TRUE, col.names=TRUE)
 ```
 
 ## DESeq2
@@ -91,7 +126,7 @@ Using the raw counts table for exons, the significant differentially expressed (
 # Make column metadata
 cond <- gsub("_rep[0-9]*.*", "", colnames(exon))
 colData <- data.frame(row.names=colnames(exon),
-                      batch=seq.int(ncol(exon)),
+                      batch=factor(gsub(".*_rep","",colnames(exon))),
                       condition=factor(cond, levels=conditions))
 
 dataset <- DESeqDataSetFromMatrix(countData=exon,
@@ -109,30 +144,12 @@ res <- res[complete.cases(res), ] # remove any rows with NA
 summary(res)
 message("No. of significant DE genes (FDR < 0.05): ", sum(res$padj < 0.05, na.rm=TRUE))
 
-# Add gene names
-row.names(res) <- gsub("\\.[0-9]*", "", rownames(res))
-genes <- row.names(res)
-
-if (grepl("ENSG", genes[1], fixed=TRUE)) {
-  ensemblDataset <- "hsapiens_gene_ensembl"
-  symbol <- "hgnc_symbol"
-} else if (grepl("ENSMUSG", genes[1], fixed=TRUE)) {
-  ensemblDataset <- "mmusculus_gene_ensembl"
-  symbol <- "mgi_symbol"
-}
-
-mart <- useDataset(ensemblDataset, useMart("ENSEMBL_MART_ENSEMBL", host="www.ensembl.org"))
-geneList <- getBM(filters="ensembl_gene_id",
-                  attributes=c("ensembl_gene_id", symbol),
-                  values=genes,
-                  mart=mart)
-
-geneList <- geneList[order(row.names(res)), ]
-res$geneSymbol <- geneList[2]
+# Add gene symbol
+res <- add_ensembl_symbol(res)
 
 # Save DESeq results table to output
-res <- res[order(res$padj), ] # order by adjusted p-value
-write.table(res,
+deGenes <- as.data.frame(res) %>% arrange(padj, desc(log2FoldChange)) # order by adjusted p-value and FC
+write.table(deGenes,
             file=glue("processed/DESeq_{gse}_{conditions[1]}.{conditions[2]}.txt"),
             row.names=TRUE, col.names=TRUE, sep="\t")
 
@@ -140,6 +157,9 @@ write.table(res,
 resLFC <- lfcShrink(dds, coef=resultsNames(dds)[3], type="apeglm")
 
 # DESeq2 MA plot
-DESeq2::plotMA(resLFC, main=glue("{conditions[1]} vs. {conditions[2]}"))
+png(glue("processed/DESeqMAplot_{gse}_{conditions[1]}.{conditions[2]}.png"))
+print(DESeq2::plotMA(resLFC, main=glue("{gse}: {conditions[1]} vs. {conditions[2]}
+                                           UP={nrow(filter(deGenes, padj < 0.05 & log2FoldChange > 0))}, DOWN={nrow(filter(deGenes, padj < 0.05 & log2FoldChange < 0))}")))
+dev.off()
 ```
 
