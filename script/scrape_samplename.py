@@ -35,5 +35,3 @@ counter = 1
 for gsm, name in gsm_sample.items():
     print(f"{counter}. {gsm} - {name}")
     counter += 1
-
-print(len(tables))
