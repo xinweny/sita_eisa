@@ -6,7 +6,7 @@ suppressPackageStartupMessages({
   library(argparser)
   library(AnnotationDbi)
   library(glue)
-  library(dyplr)
+  library(dplyr)
 })
 
 #### Parser ####
@@ -24,8 +24,12 @@ gse <- tail(strsplit(getwd(), "/")[[1]], n=1)
 sampleFiles <- Sys.glob("SampleFile*.txt")
 
 if (length(sampleFiles) == 0) {
+  message("Creating QuasR sample file(s)...")
+  
   system(glue("python3 /home/xwy21/project/sita/script/generate_samplefile.py -m {args$m} -e fastq"))
   sampleFiles <- Sys.glob("SampleFile*.txt")
+} else {
+  message("QuasR sample file(s) already created.")
 }
 
 metadata <- read.table(args$m, header=TRUE, sep=",")
