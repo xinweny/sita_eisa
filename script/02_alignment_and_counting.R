@@ -85,8 +85,28 @@ for (sampleFile in sampleFiles) {
   }
   
   # Counting
-  exonCount <- qCount(proj, regions$exons, orientation=orient, reportLevel="gene", clObj=cl)
-  genebodyCount <- qCount(proj, regions$genebodies, orientation=orient, reportLevel="gene",clObj=cl)
+  if (grepl("PAIRED", sampleFile, fixed=TRUE)) {
+    exonCount <- qCount(proj, regions$exons,
+                        orientation=orient,
+                        reportLevel="gene",
+                        useRead="first",
+                        clObj=cl)
+    genebodyCount <- qCount(proj, regions$genebodies,
+                            orientation=orient,
+                            reportLevel="gene",
+                            useRead="first",
+                            clObj=cl)
+  }  else {
+    exonCount <- qCount(proj, regions$exons,
+                        orientation=orient,
+                        reportLevel="gene",
+                        clObj=cl)
+    genebodyCount <- qCount(proj, regions$genebodies,
+                            orientation=orient,
+                            reportLevel="gene",
+                            clObj=cl)
+  }
+  
   intronCount <- genebodyCount - exonCount
   
   # Remove width column
@@ -96,34 +116,6 @@ for (sampleFile in sampleFiles) {
   # Remove version from genes
   row.names(exonCount) <- gsub("\\.[0-9]*", "", rownames(exonCount))
   row.names(intronCount) <- gsub("\\.[0-9]*", "", rownames(intronCount))
-  
-  if (grepl("PAIRED", sampleFile, fixed=TRUE)) {
-    counts <- c(exonCount, intronCount)
-    
-    countsList <- list()
-    
-    for (count in counts) {
-      row.names(count) <- count[, 1]
-      count[, 1] <- NULL
-      
-      xcols <- count %>% dplyr::select(contains(".x")) %>% colnames()
-      ycols <- count %>% dplyr::select(contains(".y")) %>% colnames()
-      newcols <- gsub("\\.x", "", xcols)
-      
-      for (i in seq_along(newcols)) {
-        newcol <- as.data.frame(rowSums(count[, c(xcols[i], ycols[i])]))
-        names(newcol) <- newcols[i]
-        count <- cbind(count, newcol)
-      }
-      
-      count <- subset(count, select=newcols)
-      
-      countsList[[length(countsList) + 1]] <- count
-    }
-    
-    exonCount <- countsList[[1]]
-    intronCount <- countsList[[2]]
-  }
   
   if (length(sampleFiles) > 1) {
     exonCountList[[length(exonCountList) + 1]] <- exonCount
