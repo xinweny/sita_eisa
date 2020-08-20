@@ -140,5 +140,5 @@ if (length(sampleFiles) > 1) {
   intronCount[is.na(intronCount)] <- 0
 }
 
-write.table(exonCount, file=glue("processed/ExonicCounts_{gse}.txt"), row.names=TRUE, col.names=TRUE, sep="\t")
-write.table(intronCount, file=glue("processed/IntronicCounts_{gse}.txt"), row.names=TRUE, col.names=TRUE, sep="\t")
+write.table(exonCount, file=glue("processed/{gse}_ExonicCounts}.txt"), row.names=TRUE, col.names=TRUE, sep="\t")
+write.table(intronCount, file=glue("processed/{gse}_IntronicCounts.txt"), row.names=TRUE, col.names=TRUE, sep="\t")
