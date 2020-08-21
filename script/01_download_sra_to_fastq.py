@@ -10,12 +10,13 @@ def scrape_sample_names(gse):
     response = get(url)
 
     html_soup = BeautifulSoup(response.text, 'html.parser')
+    tds = [td.text for td in html_soup.findAll("td")]
     tables = html_soup.findAll('table')
 
-    if len(tables) == 24:
+    if 'NIH grant(s)' in tds:
         start = 19
         end = 21
-    elif len(tables) == 23:
+    else:
         start = 18
         end = 20
 
@@ -30,6 +31,9 @@ def scrape_sample_names(gse):
             gsm_sample[text[0]] = text[1]
 
     return gsm_sample
+
+def is_paired(metadata, col_name, element):
+    return metadata.loc[metadata[col_name] == element, 'LibraryLayout'].iloc[0] == "PAIRED"
 
 # ftp://ftp.sra.ebi.ac.uk/vol1/srr/SRR602/002/SRR6026772 - URL architecture for download with wget
 def main():
@@ -60,7 +64,7 @@ def main():
                     os.system(f"prefetch -v -o ./{srr}.sra {srr}")
 
                     print(f"Converting {srr} to .fastq...")
-                    if metadata_df.loc[metadata_df['Run'] == srr, 'LibraryLayout'].iloc[0] == "PAIRED":
+                    if is_paired(metadata_df, 'Run', srr):
                         os.system(f"fastq-dump --split-files {srr}.sra --skip-technical --readids")
                     else:
                         os.system(f"fastq-dump {srr}.sra --skip-technical --readids")
@@ -74,13 +78,13 @@ def main():
                 print(gsm_srrs)
                 srr = gsm_srrs.iloc[0]
 
-                if metadata_df.loc[metadata_df['Run'] == srr, 'LibraryLayout'].iloc[0] == "PAIRED":
+                if is_paired(metadata_df, 'Run', srr):
                     os.system(f"mv -v '{srr}_1.fastq' '{gsm_samples[gsm]}_1.fastq'")
                     os.system(f"mv -v '{srr}_2.fastq' '{gsm_samples[gsm]}_2.fastq'")
                 else:
                     os.system(f"mv -v '{srr}.fastq' '{gsm_samples[gsm]}.fastq'")
             else:
-                if metadata_df.loc[metadata_df['Run'] == srr, 'LibraryLayout'].iloc[0] == "PAIRED":
+                if is_paired(metadata_df, 'Run', srr):
                     fwd_fqs = ' '.join(gsm_srrs + '_1.fastq')
                     rv_fqs = ' '.join(gsm_srrs + '_2.fastq')
 

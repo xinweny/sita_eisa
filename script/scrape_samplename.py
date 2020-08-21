@@ -11,12 +11,13 @@ url = f"https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc={args.g}"
 response = get(url)
 
 html_soup = BeautifulSoup(response.text, 'html.parser')
+tds = [td.text for td in html_soup.findAll("td")]
 tables = html_soup.findAll('table')
 
-if len(tables) == 24:
+if 'NIH grant(s)' in tds:
     start = 19
     end = 21
-elif len(tables) == 23:
+else:
     start = 18
     end = 20
 

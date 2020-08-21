@@ -47,7 +47,7 @@ if (organism == "Homo sapiens") {
 }
 
 #### Make cluster ####
-cl <- makeCluster(8)
+cl <- makeCluster(1)
 
 exonCountList <- list()
 intronCountList <- list()
