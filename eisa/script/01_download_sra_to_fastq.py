@@ -81,7 +81,7 @@ def main():
                     os.system(f"mv -v '{srr}_1.fastq' '{gsm}_{gsm_samples[gsm]}_1.fastq'")
                     os.system(f"mv -v '{srr}_2.fastq' '{gsm}_{gsm_samples[gsm]}_2.fastq'")
                 else:
-                    os.system(f"mv -v '{srr}.fastq' '{gsm_samples[gsm]}.fastq'")
+                    os.system(f"mv -v '{srr}.fastq' '{gsm}_{gsm_samples[gsm]}.fastq'")
             else:
                 print(f"Merging technical runs and enaming fastq files for {gsm}...")
                 if is_paired(metadata_df, 'Run', srr):

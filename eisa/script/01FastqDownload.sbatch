@@ -63,7 +63,7 @@ module load r-4.0.2-gcc-5.4.0-xyx46xb
 source activate seq
 
 #! Full path to application executable:
-application="python3 /home/xwy21/project/sita/script/01_download_sra_to_fastq.py"
+application="python3 /home/xwy21/project/sita/script/01_download_fastqgz.py"
 
 #! Run options for the application:
 options="-m SraRunTable_$GSE.txt"

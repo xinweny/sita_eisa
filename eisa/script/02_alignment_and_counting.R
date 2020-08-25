@@ -28,7 +28,7 @@ sampleFiles <- Sys.glob("SampleFile*.txt")
 if (length(sampleFiles) == 0) {
   message("Creating QuasR sample file(s)...")
   
-  system(glue("python3 /home/xwy21/project/sita/script/generate_samplefile.py -m {args$m} -e fastq"))
+  system(glue("python3 /home/xwy21/project/sita/script/generate_samplefile.py -m {args$m} -e fastq.gz"))
   sampleFiles <- Sys.glob("SampleFile*.txt")
 } else {
   message("QuasR sample file(s) already created.")

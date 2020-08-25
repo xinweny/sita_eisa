@@ -38,7 +38,7 @@ def main():
     parser.add_argument('-m', required=True,
                         help="Path to SraRunTable")
     parser.add_argument('-e', required=True,
-                        help="Extension (e.g. fq, fastq)")
+                        help="Extension (e.g. fq, fastq, fastq.gz)")
 
     args = parser.parse_args()
     ext = args.e
