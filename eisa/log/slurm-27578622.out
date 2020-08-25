@@ -1,0 +1,43 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita/GSE110243.
+
+JobID: 27578622
+======
+Time: Thu 20 Aug 05:35:04 BST 2020
+Running on master node: cpu-e-210
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita/GSE110243
+
+Nodes allocated:
+================
+cpu-e-210
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 Rscript /home/xwy21/project/sita/script/02_alignment_and_counting.R -m SraRunTable_GSE110243.txt
+
+Creating QuasR sample file(s)...
+Traceback (most recent call last):
+  File "/home/xwy21/project/sita/script/generate_samplefile.py", line 61, in <module>
+    main()
+  File "/home/xwy21/project/sita/script/generate_samplefile.py", line 47, in main
+    metadata_df = pd.read_csv(metadata_path, header=0, sep=',')
+  File "/home/xwy21/.conda/envs/seq/lib/python3.7/site-packages/pandas/io/parsers.py", line 685, in parser_f
+    return _read(filepath_or_buffer, kwds)
+  File "/home/xwy21/.conda/envs/seq/lib/python3.7/site-packages/pandas/io/parsers.py", line 457, in _read
+    parser = TextFileReader(fp_or_buf, **kwds)
+  File "/home/xwy21/.conda/envs/seq/lib/python3.7/site-packages/pandas/io/parsers.py", line 895, in __init__
+    self._make_engine(self.engine)
+  File "/home/xwy21/.conda/envs/seq/lib/python3.7/site-packages/pandas/io/parsers.py", line 1135, in _make_engine
+    self._engine = CParserWrapper(self.f, **self.options)
+  File "/home/xwy21/.conda/envs/seq/lib/python3.7/site-packages/pandas/io/parsers.py", line 1917, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File "pandas/_libs/parsers.pyx", line 382, in pandas._libs.parsers.TextReader.__cinit__
+  File "pandas/_libs/parsers.pyx", line 689, in pandas._libs.parsers.TextReader._setup_parser_source
+FileNotFoundError: [Errno 2] File b'SraRunTable_GSE110243.txt' does not exist: b'SraRunTable_GSE110243.txt'
+Error in file(file, "rt") : cannot open the connection
+Calls: read.table -> file
+In addition: Warning message:
+In file(file, "rt") :
+  cannot open file 'SraRunTable_GSE110243.txt': No such file or directory
+Execution halted

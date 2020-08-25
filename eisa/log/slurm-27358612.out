@@ -1,0 +1,19 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita/naprt_macrophage.
+
+JobID: 27358612
+======
+Time: Tue Aug 11 09:44:37 BST 2020
+Running on master node: cpu-e-350
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita/naprt_macrophage
+
+Nodes allocated:
+================
+cpu-e-350
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 Rscript /home/xwy21/project/sita/script/02_counting.R -i SampleFile.txt -g /rds/project/rs2099/rds-rs2099-toxgenomics/shared/human/GRCh38.primary_assembly.genome.fa -a /rds/project/rs2099/rds-rs2099-toxgenomics/shared/human/txdb.hg38.gencode.v34.sqlite
+
+Fatal error: cannot open file '/home/xwy21/project/sita/script/02_counting.R': No such file or directory

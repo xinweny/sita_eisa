@@ -1,0 +1,21 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita/thap_hek.
+
+JobID: 27145514
+======
+Time: Wed Aug  5 08:29:34 BST 2020
+Running on master node: cpu-e-1074
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita/thap_hek
+
+Nodes allocated:
+================
+cpu-e-1074
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 Rscript /home/xwy21/project/sita/script/02_alignment_and_counting.R -i SampleFile.txt --stranded
+
+Error in library(argparser) : there is no package called ‘argparser’
+Calls: suppressPackageStartupMessages -> withCallingHandlers -> library
+Execution halted

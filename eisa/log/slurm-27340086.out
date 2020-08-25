@@ -1,0 +1,20 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita/lps_mousemicroglia.
+
+JobID: 27340086
+======
+Time: Mon Aug 10 15:41:12 BST 2020
+Running on master node: cpu-e-256
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita/lps_mousemicroglia
+
+Nodes allocated:
+================
+cpu-e-256
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 Rscript /home/xwy21/project/sita/script/02_alignment_and_counting.R -i SampleFile.txt -g /rds/project/rs2099/rds-rs2099-toxgenomics/shared/mouse/GRCm38.primary_assembly.genome.fa -a /rds/project/rs2099/rds-rs2099-toxgenomics/shared/mouse/txdb.gencode.vM25.annotation.sqlite --stranded
+
+Error: Cannot open SampleFile.txt
+Execution halted

@@ -1,0 +1,25 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita/GSE97538.
+
+JobID: 27649021
+======
+Time: Fri 21 Aug 05:18:13 BST 2020
+Running on master node: cpu-e-23
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita/GSE97538
+
+Nodes allocated:
+================
+cpu-e-23
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 python3 /home/xwy21/project/sita/script/01_download_sra_to_fastq.py -m SraRunTable_GSE97538.txt
+
+(1/19) Processing GSM2571747...
+Traceback (most recent call last):
+  File "/home/xwy21/project/sita/script/01_download_sra_to_fastq.py", line 99, in <module>
+    main()
+  File "/home/xwy21/project/sita/script/01_download_sra_to_fastq.py", line 54, in main
+    if len([file for file in glob.glob(f"{gsm_samples[gsm]}*.fastq")]) == 0:
+KeyError: 'GSM2571747'
