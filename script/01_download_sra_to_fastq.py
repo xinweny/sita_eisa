@@ -55,7 +55,7 @@ def main():
     for i, gsm in enumerate(gsms):
         print(f"({i + 1}/{len(gsms)}) Processing {gsm}...")
 
-        if len([file for file in glob.glob(f"{gsm_samples[gsm]}*.fastq")]) == 0:
+        if len([file for file in glob.glob(f"{gsm}_{gsm_samples[gsm]}*.fastq")]) == 0:
             gsm_srrs = metadata_df.loc[metadata_df['Sample Name'] == gsm, 'Run']
 
             for srr in list(gsm_srrs):
@@ -73,27 +73,27 @@ def main():
                 else:
                     print(f"{srr}*.fastq already downloaded. Skipping...")
 
-            print(f"Renaming fastq files for {gsm}...")
             if len(gsm_srrs) == 1:
-                print(gsm_srrs)
+                print(f"Renaming fastq files for {gsm}...")
                 srr = gsm_srrs.iloc[0]
 
                 if is_paired(metadata_df, 'Run', srr):
-                    os.system(f"mv -v '{srr}_1.fastq' '{gsm_samples[gsm]}_1.fastq'")
-                    os.system(f"mv -v '{srr}_2.fastq' '{gsm_samples[gsm]}_2.fastq'")
+                    os.system(f"mv -v '{srr}_1.fastq' '{gsm}_{gsm_samples[gsm]}_1.fastq'")
+                    os.system(f"mv -v '{srr}_2.fastq' '{gsm}_{gsm_samples[gsm]}_2.fastq'")
                 else:
                     os.system(f"mv -v '{srr}.fastq' '{gsm_samples[gsm]}.fastq'")
             else:
+                print(f"Merging technical runs and enaming fastq files for {gsm}...")
                 if is_paired(metadata_df, 'Run', srr):
                     fwd_fqs = ' '.join(gsm_srrs + '_1.fastq')
                     rv_fqs = ' '.join(gsm_srrs + '_2.fastq')
 
-                    os.system(f"cat {fwd_fqs} > '{gsm_samples[gsm]}_1.fastq' && rm {fwd_fqs}")
-                    os.system(f"cat {rv_fqs} > '{gsm_samples[gsm]}_2.fastq' && rm {rv_fqs}")
+                    os.system(f"cat {fwd_fqs} > '{gsm}_{gsm_samples[gsm]}_1.fastq' && rm {fwd_fqs}")
+                    os.system(f"cat {rv_fqs} > '{gsm}_{gsm_samples[gsm]}_2.fastq' && rm {rv_fqs}")
                 else:
                     srr_fqs = ' '.join(gsm_srrs + '.fastq')
 
-                    os.system(f"cat {srr_fqs} > '{gsm_samples[gsm]}.fastq' && rm {srr_fqs}")
+                    os.system(f"cat {srr_fqs} > '{gsm}_{gsm_samples[gsm]}.fastq' && rm {srr_fqs}")
 
         else:
             print(f"{gsm}*.fastq already downloaded. Skipping...")

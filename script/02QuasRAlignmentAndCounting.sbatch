@@ -66,7 +66,7 @@ source activate seq
 application="Rscript /home/xwy21/project/sita/script/02_alignment_and_counting.R"
 
 #! Run options for the application:
-options="-m SraRunTable_$GSE.txt"
+options="-m SraRunTable_$GSE.txt -t $threads"
 
 #! Work directory (i.e. where the job will run):
 workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/sita/$GSE"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory

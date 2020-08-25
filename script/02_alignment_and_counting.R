@@ -14,6 +14,8 @@ p <- arg_parser("QuasR alignment and counting for EISA")
 
 p <- add_argument(p, "-m",
                   help="path to SraRunTable.txt metadata file")
+p <- add_argument(p, "-t",
+                  help="no. of threads")
 
 args <- parse_args(p)
 
@@ -47,7 +49,7 @@ if (organism == "Homo sapiens") {
 }
 
 #### Make cluster ####
-cl <- makeCluster(8)
+cl <- makeCluster(as.numeric(args$t))
 
 exonCountList <- list()
 intronCountList <- list()
@@ -71,8 +73,17 @@ for (sampleFile in sampleFiles) {
   rseqcOutput <- system(glue("infer_experiment.py -r {bedGenome} -i {bamFile}"), intern=TRUE)
   message(cat(rseqcOutput, sep="\n"))
   
-  percSameStrand <- as.numeric(tail(strsplit(rseqcOutput[5], " ")[[1]], n=1))
-  stranded <- percSameStrand > 0.9
+  libraryLayout <- strsplit(rseqcOutput[3], " ")[[1]][3]
+  
+  if (libraryLayout == "PairEnd") {
+    percSameStrand1 <- as.numeric(tail(strsplit(rseqcOutput[5], " ")[[1]], n=1))
+    percSameStrand2 <- as.numeric(tail(strsplit(rseqcOutput[6], " ")[[1]], n=1))
+    stranded <- percSameStrand1 > 0.75 | percSameStrand2 > 0.75
+  } else {
+    percSameStrand <- as.numeric(tail(strsplit(rseqcOutput[5], " ")[[1]], n=1))
+    stranded <- percSameStrand > 0.75
+  }
+  
   message(glue("Stranded: {stranded}"))
   
   # getRegionsFromTxDb also filters out genes with only 1 exon, have exons on > 1 chromosome/both strands and overlapping genes
