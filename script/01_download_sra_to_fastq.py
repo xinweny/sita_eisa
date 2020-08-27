@@ -55,7 +55,7 @@ def main():
     for i, gsm in enumerate(gsms):
         print(f"({i + 1}/{len(gsms)}) Processing {gsm}...")
 
-        if len([file for file in glob.glob(f"{gsm}_{gsm_samples[gsm]}*.fastq")]) == 0:
+        if len([file for file in glob.glob(f"{gsm}*.fastq")]) == 0:
             gsm_srrs = metadata_df.loc[metadata_df['Sample Name'] == gsm, 'Run']
 
             for srr in list(gsm_srrs):

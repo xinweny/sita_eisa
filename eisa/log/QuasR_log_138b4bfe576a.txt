@@ -1,6 +1,0 @@
-[1] "Executing hisat2 on MacBook-Pro-2.local using 1 cores. Parameters:"
-[1] "'/Library/Frameworks/R.framework/Versions/4.0/Resources/library/BSgenome.Hsapiens.UCSC.hg18.Rhisat2/alignmentIndex/hisat2Index' '/Users/Pomato/mrc/project/sita/data/THAP_RNAseq_rep4.fastq' -k 2 --phred33 -p 1 -S '/var/folders/mv/bbrz_w454tsfbgkynvx1fncr0000gn/T//RtmpFq7doN/THAP_RNAseq_rep4.fastq139918087983.sam.tmp'"
-[1] "Number of filtered secondary alignments: 157654"
-[1] "Number of filtered overmapped alignments: 157654"
-[1] "Converting sam file to sorted bam file on MacBook-Pro-2.local : /var/folders/mv/bbrz_w454tsfbgkynvx1fncr0000gn/T//RtmpFq7doN/THAP_RNAseq_rep4.fastq139918087983.sam"
-[1] "Genomic alignments for sample 2 (DMSO_RNAseq_rep4) have been successfully created on MacBook-Pro-2.local"
