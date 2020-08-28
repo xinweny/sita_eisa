@@ -1,10 +1,10 @@
 ---
-title: "SITA Analysis with EISA and DESeq"
+title: "SITA Analysis with EISA"
 output: html_notebook
 ---
 ```{r setup, include=FALSE, echo=FALSE}
 require("knitr")
-opts_knit$set(root.dir="/Users/Pomato/mrc/project/sita/")
+opts_knit$set(root.dir="/Users/Pomato/mrc/project/sita_eisa/")
 ```
 
 
@@ -52,8 +52,8 @@ add_ensembl_symbol <- function (table) {
 ## Load count data
 Takes raw count tables of introns and exons obtained using the package QuasR. Details on how to obtain count tables for this analysis [here](https://rdrr.io/github/fmicompbio/eisaR/f/vignettes/eisaR.Rmd).
 ```{r load.data}
-gse <- "GSE80304"
-selectConditions <- c("Control", "LPS4h") # control vs. treatment
+gse <- "GSE136789"
+selectConditions <- c("Control_Untreated", "Control_LPS") # control vs. treatment
 
 exon <- read.table(glue("processed/{gse}_ExonicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
 intron <- read.table(glue("processed/{gse}_IntronicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)

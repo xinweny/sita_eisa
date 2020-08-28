@@ -28,7 +28,7 @@ sampleFiles <- Sys.glob("SampleFile*.txt")
 if (length(sampleFiles) == 0) {
   message("Creating QuasR sample file(s)...")
   
-  system(glue("python3 /home/xwy21/project/sita/script/generate_samplefile.py -m {args$m} -e fastq.gz"))
+  system(glue("python3 /home/xwy21/project/sita_eisa/script/generate_samplefile.py -m {args$m} -e fq.gz"))
   sampleFiles <- Sys.glob("SampleFile*.txt")
 } else {
   message("QuasR sample file(s) already created.")
@@ -75,19 +75,21 @@ for (sampleFile in sampleFiles) {
   
   libraryLayout <- strsplit(rseqcOutput[3], " ")[[1]][3]
   
+  strandThresh <- 0.8
+  
   if (libraryLayout == "PairEnd") {
     percSameStrand1 <- as.numeric(tail(strsplit(rseqcOutput[5], " ")[[1]], n=1))
-    percSameStrand2 <- as.numeric(tail(strsplit(rseqcOutput[6], " ")[[1]], n=1))
-    stranded <- percSameStrand1 > 0.75 | percSameStrand2 > 0.75
+    # percSameStrand2 <- as.numeric(tail(strsplit(rseqcOutput[6], " ")[[1]], n=1))
+    stranded <- percSameStrand1 > strandThresh # | percSameStrand2 > strandThresh
   } else {
     percSameStrand <- as.numeric(tail(strsplit(rseqcOutput[5], " ")[[1]], n=1))
-    stranded <- percSameStrand > 0.75
+    stranded <- percSameStrand > strandThresh
   }
   
   message(glue("Stranded: {stranded}"))
   
   # getRegionsFromTxDb also filters out genes with only 1 exon, have exons on > 1 chromosome/both strands and overlapping genes
-  if (stranded == TRUE) {
+  if (stranded == TRUE && grepl("SINGLE", sampleFile, fixed=TRUE)) {
     regions <- getRegionsFromTxDb(txdb=txdb, strandedData=TRUE)
     orient <- "same"
   } else {

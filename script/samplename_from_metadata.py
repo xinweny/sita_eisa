@@ -35,29 +35,27 @@ def scrape_sample_names(gse):
 def main():
     parser = argparse.ArgumentParser(description='Script to convert sample names based on SRA Run Table metadata')
     parser.add_argument('-g', required=True, help='GSE accession number')
-    parser.add_argument('-m', required=True, help='path to SRA run table metadata')
     parser.add_argument('-c', required=True, help='columns in metadata table, separated by \",\"')
 
     args = parser.parse_args()
     gse = args.g
-    metadata_path = args.m
     columns = (args.c).split(',')
 
-    metadata_df = pd.read_csv(metadata_path, header=0, sep=',')
+    metadata_df = pd.read_csv(f"{gse}/SraRunTable_{gse}.txt", header=0, sep=',')
     gsms = metadata_df['Sample Name'].unique()
     gsm_sample = scrape_sample_names(gse)
 
-    os.chdir("fastq")
+    os.chdir(f"{gse}/fastq")
 
     for gsm in gsms:
         info = [metadata_df.loc[metadata_df['Sample Name'] == gsm, col].iloc[0] for col in columns]
         new_name = '_'.join(info)
 
         if metadata_df.loc[metadata_df['Sample Name'] == gsm, 'LibraryLayout'].iloc[0] == "PAIRED":
-            os.system(f"mv -v '{gsm_sample[gsm]}_1.fastq' '{gsm}_{new_name}_1.fastq'")
-            os.system(f"mv -v '{gsm_sample[gsm]}_2.fastq' '{gsm}_{new_name}_2.fastq'")
+            os.system(f"mv -v '{gsm}_{gsm_sample[gsm]}_1.fastq.gz' '{gsm}_{new_name}_1.fq.gz'")
+            os.system(f"mv -v '{gsm}_{gsm_sample[gsm]}_2.fastq.gz' '{gsm}_{new_name}_2.fq.gz'")
         else:
-            os.system(f"mv -v '{gsm_sample[gsm]}.fastq' '{gsm}_{new_name}.fastq'")
+            os.system(f"mv -v '{gsm}_{gsm_sample[gsm]}.fastq.gz' '{gsm}_{new_name}.fq.gz'")
 
 # Execute code
 if __name__ == "__main__":
