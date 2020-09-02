@@ -74,11 +74,11 @@ def main():
     # Parser
     parser = argparse.ArgumentParser(description='Download fq.gz files from SRA')
     parser.add_argument('-m', required=True, help='Path to SRA run table metadata.')
-    parser.add_argument('-c', help='Columns in metadata table for naming, separated by comma (,). If given sample name on GSE page is preferred, leave as an empty string.')
+    parser.add_argument('-c', nargs='?', const='', required=True, help='Columns in metadata table for naming, separated by |. If given sample name on GSE page is preferred, leave as an empty string.')
 
     args = parser.parse_args()
     metadata_path = args.m
-    columns = (args.c).split(',')
+    columns = (args.c).split('|')
 
     if args.c == '':
         gsm_samples = scrape_sample_names(os.getcwd().split("/")[-1])
