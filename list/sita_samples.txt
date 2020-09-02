@@ -1,9 +1,0 @@
-FileName	SampleName
-/rds/project/rs2099/rds-rs2099-toxgenomics/sita/DMSO_RNAseq_rep1.fastq	DMSO_RNAseq_rep1
-/rds/project/rs2099/rds-rs2099-toxgenomics/sita/DMSO_RNAseq_rep2.fastq	DMSO_RNAseq_rep2
-/rds/project/rs2099/rds-rs2099-toxgenomics/sita/DMSO_RNAseq_rep3.fastq	DMSO_RNAseq_rep3
-/rds/project/rs2099/rds-rs2099-toxgenomics/sita/DMSO_RNAseq_rep4.fastq	DMSO_RNAseq_rep4
-/rds/project/rs2099/rds-rs2099-toxgenomics/sita/THAP_RNAseq_rep1.fastq	THAP_RNAseq_rep1
-/rds/project/rs2099/rds-rs2099-toxgenomics/sita/THAP_RNAseq_rep2.fastq	THAP_RNAseq_rep2
-/rds/project/rs2099/rds-rs2099-toxgenomics/sita/THAP_RNAseq_rep3.fastq	THAP_RNAseq_rep3
-/rds/project/rs2099/rds-rs2099-toxgenomics/sita/THAP_RNAseq_rep4.fastq	THAP_RNAseq_rep4
