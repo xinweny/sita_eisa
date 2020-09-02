@@ -1,9 +1,0 @@
-.gitignore
-.vscode
-.Rhistory
-.DS_Store
-data
-notes
-log
-list
-processed
