@@ -1,9 +1,9 @@
 .gitignore
-.vscode/
+.vscode
 .Rhistory
 .DS_Store
-data/
-notes/
-log/
-list/
-processed/
+data
+notes
+log
+list
+processed
