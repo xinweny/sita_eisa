@@ -70,7 +70,7 @@ for (sampleFile in sampleFiles) {
   #### Counting exons and introns ####
   # Check strandedness
   bamFile <- Sys.glob("bam/*.bam")[1]
-  rseqcOutput <- system(glue("infer_experiment.py -r {bedGenome} -i {bamFile}"), intern=TRUE)
+  rseqcOutput <- system(glue("infer_experiment.py -r {bedGenome} -i '{bamFile}'"), intern=TRUE)
   message(cat(rseqcOutput, sep="\n"))
   
   libraryLayout <- strsplit(rseqcOutput[3], " ")[[1]][3]
