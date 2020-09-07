@@ -46,8 +46,14 @@ def aspera_download(srr, paired=False):
 
             if sys_value == 256:
                 print("Retrying new ftp...")
-                os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
+                sys_value = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
                 era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/0{srr[-2:]}/{srr}/{srr}_{i}.fastq.gz \
+                ./{srr}_{i}.fq.gz")
+
+            if sys_value == 256:
+                print("Retrying new ftp...")
+                os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
+                era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/{srr}/{srr}_{i}.fastq.gz \
                 ./{srr}_{i}.fq.gz")
     else:
         sys_value = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
@@ -59,6 +65,12 @@ def aspera_download(srr, paired=False):
             os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
                         era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/0{srr[-2:]}/{srr}/{srr}.fastq.gz \
                         ./{srr}.fq.gz")
+
+        if sys_value == 256:
+            print("Retrying new ftp...")
+            os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
+            era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/{srr}/{srr}_{i}.fastq.gz \
+            ./{srr}_{i}.fq.gz")
 
 def samplename_from_metadata(gsm, metadata_df, columns):
     info = [metadata_df.loc[metadata_df['Sample Name'] == gsm, col].iloc[0] for col in columns]

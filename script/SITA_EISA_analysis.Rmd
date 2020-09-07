@@ -47,13 +47,21 @@ add_ensembl_symbol <- function (table) {
   
   return(newTable)
 }
+
+format_condition <- function (colnames) {
+  new_cond <- gsub("_[0-9]*$", "", colnames)
+  new_cond <- gsub("_rep$", "", new_cond)
+  new_cond <- gsub("GSM[0-9]*_", "", new_cond)
+  
+  return(new_cond)
+}
 ```
 
 ## Load count data
 Takes raw count tables of introns and exons obtained using the package QuasR. Details on how to obtain count tables for this analysis [here](https://rdrr.io/github/fmicompbio/eisaR/f/vignettes/eisaR.Rmd).
 ```{r load.data}
-gse <- "GSE123596"
-selectConditions <- c("M0_1h", "LPS_1h") # control vs. treatment
+gse <- "GSE98142"
+selectConditions <- c("Total_brain_MG_WT", "Total_brain_MG_LPS_WT") # control vs. treatment
 
 exon <- read.table(glue("processed/{gse}_ExonicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
 intron <- read.table(glue("processed/{gse}_IntronicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
@@ -80,8 +88,7 @@ summary(fracIn)
 Run Exon Intron Split Analysis (EISA) on the raw intron and exon count tables for a certain GSE using . Outputs a MA plot that shows stress-induced transcriptional attenuation (SITA), a global downregulation in genes upon stress induction.
 ```{r eisa}
 # Format and select conditions for each sample
-cond <- gsub("_rep[0-9]*.*", "", colnames(exonsh))
-cond <- gsub("GSM[0-9]*_", "", cond)
+cond <- format_condition(colnames(exon))
 
 conditions <- unique(cond)
 cond <- factor(cond, levels=rev(conditions))
@@ -139,8 +146,7 @@ Using the raw counts table for exons, the significant differentially expressed (
 paired <- FALSE
 
 # Make column metadata
-cond <- gsub("_rep[0-9]*.*", "", colnames(exon))
-cond <- gsub("GSM[0-9]*_", "", cond)
+cond <- format_condition(colnames(exon))
 conditions <- unique(cond)
 
 if (paired) {

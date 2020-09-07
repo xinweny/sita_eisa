@@ -142,3 +142,6 @@ if (length(sampleFiles) > 1) {
 
 write.table(exonCount, file=glue("processed/{gse}_ExonicCounts.txt"), row.names=TRUE, col.names=TRUE, sep="\t")
 write.table(intronCount, file=glue("processed/{gse}_IntronicCounts.txt"), row.names=TRUE, col.names=TRUE, sep="\t")
+
+# Delete cache
+system("rm -r cache/*")
