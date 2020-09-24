@@ -16,12 +16,12 @@ def scrape_sample_names(gse):
     tds = [td.text for td in html_soup.findAll("td")]
     tables = html_soup.findAll('table')
 
+    start = 18
+    end = 20
+
     if 'NIH grant(s)' in tds:
-        start = 19
-        end = 21
-    else:
-        start = 18
-        end = 20
+        start += 1
+        end += 1
 
     sample_table = tables[start:end]
 
@@ -31,9 +31,9 @@ def scrape_sample_names(gse):
         for i, row in enumerate(table.findAll("tr")):
             cells = row.findAll("td")
             text = [cell.text for cell in cells]
-            name = re.sub(r'[\/:]', "", text[0])
+            name = text[0]
 
-            gsm_sample[name] = text[1]
+            gsm_sample[name] = re.sub(r'[\/:]', "", text[1])
 
     return gsm_sample
 
@@ -99,7 +99,7 @@ def main():
     gsms = metadata_df['Sample Name'].unique()
 
     # Set up file architecture
-    os.system("mkdir fastq")
+    os.system("mkdir bam cache processed fastq")
     os.chdir("fastq")
 
     for i, gsm in enumerate(gsms):

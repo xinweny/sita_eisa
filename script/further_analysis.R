@@ -18,7 +18,7 @@ format_condition <- function (colnames) {
 }
 
 #### Load data ####
-gse <- "GSE139592"
+gse <- "GSE123596"
 
 exon <- read.table(glue("processed/{gse}_ExonicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE) %>%
   as.matrix()

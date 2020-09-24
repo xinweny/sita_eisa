@@ -60,8 +60,8 @@ format_condition <- function (colnames) {
 ## Load count data
 Takes raw count tables of introns and exons obtained using the package QuasR. Details on how to obtain count tables for this analysis [here](https://rdrr.io/github/fmicompbio/eisaR/f/vignettes/eisaR.Rmd).
 ```{r load.data}
-gse <- "GSE110243"
-selectConditions <- c("Abca7_none", "Abca7_LPS") # control vs. treatment
+gse <- "GSE88888"
+selectConditions <- c("Control", "PD") # control vs. treatment
 
 exon <- read.table(glue("processed/{gse}_ExonicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
 intron <- read.table(glue("processed/{gse}_IntronicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
@@ -198,7 +198,7 @@ summary(res)
 message(glue("No. of significant DE genes (FDR < {alpha}): "), sum(resLFC$padj < alpha, na.rm=TRUE))
 
 # Add gene symbol
-resLFC <- add_ensembl_symbol(resLFC)
+# resLFC <- add_ensembl_symbol(resLFC)
 
 # Save DESeq results table to output
 deGenes <- as.data.frame(resLFC) %>% arrange(padj, desc(log2FoldChange)) # order by adjusted p-value and FC

@@ -56,9 +56,7 @@ module purge                               # Removes all modules still loaded
 module load rhel7/default-peta4            # REQUIRED - loads the basic environment
 
 #! Insert additional module load commands after this line if needed:
-module load miniconda3-4.5.4-gcc-5.4.0-hivczbz
-module load libxml2-2.9.8-gcc-5.4.0-sy2r4k7
-module load r-4.0.2-gcc-5.4.0-xyx46xb
+module load miniconda/3
 
 source activate seq
 
@@ -69,7 +67,7 @@ application="python3 /home/xwy21/project/sita_eisa/script/01_download_fastqgz.py
 options="-m SraRunTable_$GSE.txt -c '$columns'"
 
 #! Work directory (i.e. where the job will run):
-workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/$GSE"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
+workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/data/$GSE"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
                              # in which sbatch is run.
 
 #! Are you using OpenMP (NB this is unrelated to OpenMPI)? If so increase this
