@@ -75,16 +75,22 @@ for (sampleFile in sampleFiles) {
   
   libraryLayout <- strsplit(rseqcOutput[3], " ")[[1]][3]
   
-  strandThresh <- 0.8
+  strandThresh <- 0.9
+
+  percRvStrand <- as.numeric(tail(strsplit(rseqcOutput[6], " ")[[1]], n=1))
+  percFwStrand <- as.numeric(tail(strsplit(rseqcOutput[5], " ")[[1]], n=1))
   
-  if (libraryLayout == "PairEnd") {
-    percSameStrand1 <- as.numeric(tail(strsplit(rseqcOutput[5], " ")[[1]], n=1))
-    # percSameStrand2 <- as.numeric(tail(strsplit(rseqcOutput[6], " ")[[1]], n=1))
-    stranded <- percSameStrand1 > strandThresh # | percSameStrand2 > strandThresh
-  } else {
-    percSameStrand <- as.numeric(tail(strsplit(rseqcOutput[5], " ")[[1]], n=1))
-    stranded <- percSameStrand > strandThresh
-  }
+  stranded <- percFwStrand > strandThresh | percRvStrand > strandThresh
+  
+  # if (libraryLayout == "PairEnd") {
+  #   percFwStrand <- as.numeric(tail(strsplit(rseqcOutput[5], " ")[[1]], n=1))
+  #   # percRvStrand <- as.numeric(tail(strsplit(rseqcOutput[6], " ")[[1]], n=1))
+  #   stranded <- percFwStrand > strandThresh # | percRvStrand > strandThresh
+  # } else {
+  #   percFwStrand <- as.numeric(tail(strsplit(rseqcOutput[5], " ")[[1]], n=1))
+  #   percRvStrand <- as.numeric(tail(strsplit(rseqcOutput[6], " ")[[1]], n=1))
+  #   stranded <- percFwStrand > strandThresh | percRvStrand > strandThresh
+  # }
   
   message(glue("Stranded: {stranded}"))
   
@@ -140,8 +146,8 @@ if (length(sampleFiles) > 1) {
   intronCount[is.na(intronCount)] <- 0
 }
 
-write.table(exonCount, file=glue("processed/{gse}_ExonicCounts.txt"), row.names=TRUE, col.names=TRUE, sep="\t")
-write.table(intronCount, file=glue("processed/{gse}_IntronicCounts.txt"), row.names=TRUE, col.names=TRUE, sep="\t")
+write.table(exonCount, file=glue("processed/{gse}_ExonicCounts.txt"), row.names=TRUE, col.names=TRUE, sep="\t", quote=FALSE)
+write.table(intronCount, file=glue("processed/{gse}_IntronicCounts.txt"), row.names=TRUE, col.names=TRUE, sep="\t", quote=FALSE)
 
 # Delete cache
 system("rm -r cache/*")

@@ -155,7 +155,7 @@ run_deseq2 <- function (exon, intron, paired=FALSE, alpha=0.05, lfcThresh=0) {
   deGenes <- as.data.frame(resLFC) %>% arrange(padj, desc(log2FoldChange)) # order by adjusted p-value and FC
   write.table(deGenes,
               file=glue("{gse}_DESeq_{conditions[1]}.{conditions[2]}.txt"),
-              row.names=TRUE, col.names=TRUE, sep="\t")
+              row.names=TRUE, col.names=TRUE, sep="\t", quote=FALSE)
   
   # Ratio of up and down regulated significant genes
   nUp <- nrow(filter(deGenes, padj < alpha & log2FoldChange > 0))

@@ -39,38 +39,47 @@ def scrape_sample_names(gse):
 
 def aspera_download(srr, paired=False):
     if paired == True:
+        sys_value = 0
+
         for i in [1, 2]:
-            sys_value = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
+            sys_val = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
                         era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/00{srr[-1]}/{srr}/{srr}_{i}.fastq.gz \
                         ./{srr}_{i}.fq.gz")
 
-            if sys_value == 256:
+            if sys_val == 256:
                 print("Retrying new ftp...")
-                sys_value = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
-                era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/0{srr[-2:]}/{srr}/{srr}_{i}.fastq.gz \
-                ./{srr}_{i}.fq.gz")
+                sys_val = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
+                            era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/0{srr[-2:]}/{srr}/{srr}_{i}.fastq.gz \
+                            ./{srr}_{i}.fq.gz")
 
-            if sys_value == 256:
+            if sys_val == 256:
                 print("Retrying new ftp...")
-                os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
-                era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/{srr}/{srr}_{i}.fastq.gz \
-                ./{srr}_{i}.fq.gz")
+                sys_val = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
+                            era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/{srr}/{srr}_{i}.fastq.gz \
+                            ./{srr}_{i}.fq.gz")
+
+            sys_value += sys_val
+
     else:
-        sys_value = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
+        sys_val = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
                     era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/00{srr[-1]}/{srr}/{srr}.fastq.gz \
                     ./{srr}.fq.gz")
 
-        if sys_value == 256:
+        if sys_val == 256:
             print("Retrying new ftp...")
-            os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
+            sys_val = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
                         era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/0{srr[-2:]}/{srr}/{srr}.fastq.gz \
                         ./{srr}.fq.gz")
 
-        if sys_value == 256:
+        if sys_val == 256:
             print("Retrying new ftp...")
-            os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
-            era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/{srr}/{srr}.fastq.gz \
-            ./{srr}.fq.gz")
+            sys_val = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
+                        era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/{srr}/{srr}.fastq.gz \
+                        ./{srr}.fq.gz")
+
+        sys_value = sys_val
+
+    return sys_value
 
 def samplename_from_metadata(gsm, metadata_df, columns):
     info = [metadata_df.loc[metadata_df['Sample Name'] == gsm, col].iloc[0] for col in columns]
@@ -80,6 +89,22 @@ def samplename_from_metadata(gsm, metadata_df, columns):
 
 def is_paired(metadata, col_name, element):
     return metadata.loc[metadata[col_name] == element, 'LibraryLayout'].iloc[0] == "PAIRED"
+
+def check_exitcodes(sys_values):
+    if sys_values == {}:
+        return True
+
+    if sum(sys_values.values()) > 0:
+        print("WARNING: Some files not fully downloaded:")
+        for srr, value in sys_values.items():
+            if value != 0:
+                print(srr)
+
+        return False
+    else:
+        print("All files downloaded completely.")
+
+        return True
 
 # Main
 def main():
@@ -112,13 +137,18 @@ def main():
         gsm_srrs = metadata_df.loc[metadata_df['Sample Name'] == gsm, 'Run']
         name = gsm_samples[gsm] if args.c == '' else samplename_from_metadata(gsm, metadata_df, columns)
 
-        for srr in list(gsm_srrs):
-            if len([file for file in glob.glob(f"{srr}*.fq.gz")]) > 0:
-                print(f"{srr}*.fq.gz already downloaded. Skipping...")
-                continue
+        not_all_downloaded = True
 
-            print(f"Downloading {srr}...")
-            aspera_download(srr, paired=is_paired(metadata_df, 'Run', srr))
+        while not_all_downloaded:
+            sys_values = {}
+
+            for srr in list(gsm_srrs):
+                print(f"Downloading {srr}...")
+                sys_value = aspera_download(srr, paired=is_paired(metadata_df, 'Run', srr))
+
+                sys_values[srr] = sys_value
+
+            not_all_downloaded = not check_exitcodes(sys_values)
 
         if len(gsm_srrs) == 1:
             print(f"Renaming fastq files for {gsm}...")

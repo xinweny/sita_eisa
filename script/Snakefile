@@ -1,30 +1,100 @@
-workdir: "/rds/project/rs2099/rds-rs2099-toxgenomics/sita/" + config['dir']
-localrules: all, run_eisa
+#### Packages ####
+import pandas as pd
+import glob
 
+#### Functions ####
+def get_layout(metadata_path):
+    metadata = pd.read_csv(metadata_path, header=0, sep=',')
+
+    return metadata['LibraryLayout'][0]
+
+def get_organism(metadata_path):
+    metadata = pd.read_csv(metadata_path, header=0, sep=',')
+    organism = metadata['Organism'][0]
+
+    return 'human' if organism == 'Homo sapiens' else 'mouse'
+
+def get_samples(path, ext):
+    samples = set([os.path.basename(sample).replace(f".{ext}", '') for sample in glob.glob(f"{path}*.{ext}")
+              if not any(match in os.path.basename(sample) for match in ['trimmed', 'val'])])
+
+    if LAYOUT == 'PAIRED':
+        samples = set([sample[:-2] for sample in samples])
+
+    return samples
+
+#### Config ####
+configfile: "config/config.yaml"
+workdir: config['base']
+localrules: all
+
+PREFIX = f"data/{config['GSE']}"
+LAYOUT = get_layout(f"{config['base']}/{PREFIX}/SraRunTable_{config['GSE']}.txt")
+ORGANISM = get_organism(f"{config['base']}/{PREFIX}/SraRunTable_{config['GSE']}.txt")
+SAMPLES = get_samples(f"{PREFIX}/fastq/", 'fq.gz')
+
+#### Workflow ####
 rule all:
     input:
-        "processed/MAplot.png",
-        "processed/DEstats.txt"
+        f"{PREFIX}/processed/{config['GSE']}_ExonicCounts.txt",
+        f"{PREFIX}/processed/{config['GSE']}_IntronicCounts.txt"
+
+rule trimgalore_single:
+    input:
+        expand(f"{PREFIX}/fastq/{{sample}}.fq.gz", sample=SAMPLES)
+    output:
+        expand(f"{PREFIX}/fastq/{{sample}}_trimmed.fq.gz", sample=SAMPLES)
+    resources:
+        time_min = 120,
+        nodes = 1,
+        tasks = 1,
+        cpus = len(SAMPLES) if len(SAMPLES) < 32 else 32
+    params:
+        job_name = f"{config['GSE']}_TRIMSINGLE"
+    shell:
+        f"""trim_galore -j {{resources.cpus}} --stringency 3 \
+            -o {PREFIX}/fastq {{input}}"""
+
+rule trimgalore_paired:
+    input:
+        expand(f"{PREFIX}/fastq/{{sample}}_{{i}}.fq.gz", sample=SAMPLES, i=[1, 2])
+    output:
+        expand(f"{PREFIX}/fastq/{{sample}}_{{i}}_val_{{i}}.fq.gz", sample=SAMPLES, i=[1, 2])
+    resources:
+        time_min = 120,
+        nodes = 1,
+        tasks = 1,
+        cpus = len(SAMPLES) * 2 if len(SAMPLES) < 16 else 32
+    params:
+        job_name = f"{config['GSE']}_TRIMPAIRED"
+    shell:
+        f"""trim_galore -j {{resources.cpus}} --stringency 3 --paired \
+            -o {PREFIX}/fastq {{input}}"""
 
 rule quasr_map_count:
     input:
-        sample_file = "SampleFile.txt",
-        metadata = "SraRunTable.txt"
+        f"{PREFIX}/SraRunTable_{config['GSE']}.txt"
     output:
-        exon = "processed/ExonicCounts.txt",
-        intron = "processed/IntronicCounts.txt"
-    threads: 16
+        f"{PREFIX}/processed/{config['GSE']}_ExonicCounts.txt",
+        f"{PREFIX}/processed/{config['GSE']}_IntronicCounts.txt"
+    resources:
+        time_min = 720,
+        tasks = 1,
+        nodes = 1,
+        cpus = 32
+    params:
+        job_name = f"{config['GSE']}_QUASRALIGNCOUNT",
+        fa_genome = config['fasta'][ORGANISM],
+        bed_genome = config['bed'][ORGANISM],
+        txdb = config['txdb'][ORGANISM]
     run:
-        shell("python3 /home/xwy21/project/sita/script/generate_samplefile.py -m {input.metadata} -e fastq")
-        shell("Rscript /home/xwy21/project/sita/script/02_alignment_and_counting.R -i {input.sample_file} -m {input.metadata}")
-
-rule run_eisa:
-    input:
-        exon = "processed/ExonicCounts.txt",
-        intron = "processed/IntronicCounts.txt"
-    output:
-        "processed/MAplot.png",
-        "processed/DEstats.txt"
-    run:
-        shell("Rscript /home/xwy21/project/sita/script/03_eisa.R -i {input.intron} -e {input.exon}")
+        shell("module load libxml2-2.9.8-gcc-5.4.0-sy2r4k7")
+        shell("module load r-4.0.2-gcc-5.4.0-xyx46xb")
+        shell(f"cd {PREFIX} && mkdir bam cache")
+        shell("""Rscript script/02_alignment_and_counting.R \
+        -f {params.fa_genome} \
+        -b {params.bed_genome} \
+        -x {params.txdb} \
+        -t {resources.cpus}
+        """)
 
