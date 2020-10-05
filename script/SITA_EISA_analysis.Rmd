@@ -60,8 +60,8 @@ format_condition <- function (colnames) {
 ## Load count data
 Takes raw count tables of introns and exons obtained using the package QuasR. Details on how to obtain count tables for this analysis [here](https://rdrr.io/github/fmicompbio/eisaR/f/vignettes/eisaR.Rmd).
 ```{r load.data}
-gse <- "GSE151936"
-selectConditions <- c("MDM_WT", "MDM_sALS") # control vs. treatment
+gse <- "GSE135539"
+selectConditions <- c("SOD1G37R_batch1_sc-cervical_sham", "SOD1G37R_batch1_sc-cervical_shRNA-SOD1") # control vs. treatment
 
 exon <- read.table(glue("processed/{gse}_ExonicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
 intron <- read.table(glue("processed/{gse}_IntronicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)

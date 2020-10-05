@@ -39,10 +39,14 @@ def main():
                         help="Path to SraRunTable")
     parser.add_argument('-e', required=True,
                         help="Extension (e.g. fq, fastq, fastq.gz)")
+    parser.add_argument('-w', required=True,
+                        help="Working directory")
 
     args = parser.parse_args()
     ext = args.e
     metadata_path = args.m
+
+    os.chdir(args.w)
 
     metadata_df = pd.read_csv(metadata_path, header=0, sep=',')
     layout = list(metadata_df['LibraryLayout'].unique())
@@ -56,6 +60,4 @@ def main():
             sample_file = make_samplefile(ext, l)
             sample_file.to_csv(f"SampleFile_{l}.txt", header=True, index=False, sep='\t')
 
-
-if __name__ == "__main__":
-    main()
+main()

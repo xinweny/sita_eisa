@@ -80,7 +80,8 @@ for (sampleFile in sampleFiles) {
   percRvStrand <- as.numeric(tail(strsplit(rseqcOutput[6], " ")[[1]], n=1))
   percFwStrand <- as.numeric(tail(strsplit(rseqcOutput[5], " ")[[1]], n=1))
   
-  stranded <- percFwStrand > strandThresh | percRvStrand > strandThresh
+  stranded_fw <- percFwStrand > strandThresh
+  stranded_rv <- percRvStrand > strandThresh
   
   # if (libraryLayout == "PairEnd") {
   #   percFwStrand <- as.numeric(tail(strsplit(rseqcOutput[5], " ")[[1]], n=1))
@@ -92,12 +93,15 @@ for (sampleFile in sampleFiles) {
   #   stranded <- percFwStrand > strandThresh | percRvStrand > strandThresh
   # }
   
-  message(glue("Stranded: {stranded}"))
+  message(glue("Stranded: {stranded_fw | stranded_rv}"))
   
   # getRegionsFromTxDb also filters out genes with only 1 exon, have exons on > 1 chromosome/both strands and overlapping genes
-  if (stranded == TRUE && grepl("SINGLE", sampleFile, fixed=TRUE)) {
+  if (stranded_fw == TRUE) {
     regions <- getRegionsFromTxDb(txdb=txdb, strandedData=TRUE)
     orient <- "same"
+  } else if (stranded_rv == TRUE) {
+    regions <- getRegionsFromTxDb(txdb=txdb, strandedData=TRUE)
+    orient <- "opposite"
   } else {
     regions <- getRegionsFromTxDb(txdb=txdb, strandedData=FALSE)
     orient <- "any"
