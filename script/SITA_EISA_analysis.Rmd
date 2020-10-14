@@ -21,21 +21,32 @@ suppressPackageStartupMessages({
 ```
 
 ## Functions
-```{r}
+```{r functions}
 add_ensembl_symbol <- function (table) {
   genes <- row.names(table)
   
   if (grepl("ENSG", genes[1], fixed=TRUE)) {
+    ensembl <- useMart("ensembl")
     ensemblDataset <- "hsapiens_gene_ensembl"
     symbol <- "hgnc_symbol"
+    filter <- "ensembl_gene_id"
   } else if (grepl("ENSMUSG", genes[1], fixed=TRUE)) {
+    ensembl <- useMart("ensembl")
     ensemblDataset <- "mmusculus_gene_ensembl"
     symbol <- "mgi_symbol"
+    filter <- "ensembl_gene_id"
+  } else if (grepl("WBGene", genes[1], fixed=TRUE)) {
+    ensembl <- useMart(biomart = "parasite_mart", 
+                   host = "https://parasite.wormbase.org", 
+                   port = 443)
+    ensemblDataset <- "wbps_gene"
+    symbol <- "external_gene_id"
+    filter <- "wbps_gene_id"
   }
   
-  mart <- useDataset(ensemblDataset, useMart("ENSEMBL_MART_ENSEMBL", host="http://www.ensembl.org"))
-  geneList <- getBM(filters="ensembl_gene_id",
-                    attributes=c("ensembl_gene_id", symbol),
+  mart <- useDataset(ensemblDataset, ensembl)
+  geneList <- getBM(filters=filter,
+                    attributes=c(filter, symbol),
                     values=genes,
                     mart=mart)
   
@@ -60,8 +71,8 @@ format_condition <- function (colnames) {
 ## Load count data
 Takes raw count tables of introns and exons obtained using the package QuasR. Details on how to obtain count tables for this analysis [here](https://rdrr.io/github/fmicompbio/eisaR/f/vignettes/eisaR.Rmd).
 ```{r load.data}
-gse <- "GSE135539"
-selectConditions <- c("SOD1G37R_batch1_sc-cervical_sham", "SOD1G37R_batch1_sc-cervical_shRNA-SOD1") # control vs. treatment
+gse <- "GSE113924"
+selectConditions <- c("presymptomatic_PFN1-WT", "end-stage_PFN1-G118V") # control vs. treatment
 
 exon <- read.table(glue("processed/{gse}_ExonicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
 intron <- read.table(glue("processed/{gse}_IntronicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
@@ -198,7 +209,7 @@ summary(res)
 message(glue("No. of significant DE genes (FDR < {alpha}): "), sum(resLFC$padj < alpha, na.rm=TRUE))
 
 # Add gene symbol
-# resLFC <- add_ensembl_symbol(resLFC)
+resLFC <- add_ensembl_symbol(resLFC)
 
 # Save DESeq results table to output
 deGenes <- as.data.frame(resLFC) %>% arrange(padj, desc(log2FoldChange)) # order by adjusted p-value and FC
