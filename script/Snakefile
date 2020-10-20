@@ -12,14 +12,7 @@ def get_organism(metadata_path):
     metadata = pd.read_csv(metadata_path, header=0, sep=',')
     organism_name = metadata['Organism'][0]
 
-    if organism_name == 'Homo sapiens':
-        organism = 'human'
-    elif organism_name == 'Mus musculus':
-        organism = 'mouse'
-    elif organism_name == 'Caenorhabditis elegans':
-        organism = 'c_elegans'
-
-    return organism
+    return organism_name.replace(' ', '_').lower()
 
 def get_samples(path, ext):
     samples = set([os.path.basename(sample).replace(f".{ext}", '') for sample in glob.glob(f"{path}*.{ext}")
@@ -145,7 +138,7 @@ rule quasr_map_count:
         time_min = 720,
         tasks = 1,
         nodes = 1,
-        cpus = 32
+        cpus = len(SAMPLES) if len(SAMPLES) < 16 else 32
     params:
         job_name = f"{config['GSE']}_QUASRALIGNCOUNT",
         fa_genome = config['fasta'][ORGANISM],
