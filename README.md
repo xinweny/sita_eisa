@@ -1,10 +1,5 @@
 # SITA Analysis Pipeline with EISA
-
-<<<<<<< HEAD
-A pipeline for the pairwise, comparative visualisation and analysis of stress-induced transcriptional attenuation (SITA) using exon-intron split analysis (EISA) of selected experimental conditions. Currently only supports studies deposited on the [NCBI GEO database](https://www.ncbi.nlm.nih.gov/geo/) involving Human or Mouse bulk RNA-seq data. This pipeline has a CLI and is scripted using Python and R, and is suitable for use with HPC systems.
-=======
 A pipeline for the pairwise, comparative visualisation and analysis of stress-induced transcriptional attenuation (SITA) using exon-intron split analysis (EISA) of selected experimental conditions. This pipeline is written in [Snakemake](https://snakemake.readthedocs.io/en/stable/) and has scripts in Python and R, and is suitable for use with HPC systems.
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
 
 ## Table of Contents
 TBD
@@ -34,7 +29,6 @@ TBD - make diagram
     - pandas (≥ v0.25.3)
     - bs4 (≥ v4.8.2)
 3. R (≥ v4.x.x) and packages:
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
     - edgeR
     - eisaR
     - DESeq2
@@ -44,9 +38,6 @@ TBD - make diagram
     - dplyr
     - glue
 3. [Aspera Command Line Interface or Aspera Connect](https://www.ibm.com/products/aspera/downloads) added to PATH
-<<<<<<< HEAD
-4. [RSeQC](http://rseqc.sourceforge.net/) infer_experiment.py added to PATH
-=======
 4. [RSeQC](http://rseqc.sourceforge.net/) `infer_experiment.py` added to PATH
 
 ## Setup
@@ -63,14 +54,12 @@ The `config.yaml` stores the paths to the reference files of the respective orga
 2. GTF annotation file
 3. SQLITE TxDb file (easily generated from the GTF file using this tutorial [here](https://seandavi.github.io/ITR/transcriptdb.html))
 4. BED genome file (downloadable from [UCSC Table Browser](https://genome.ucsc.edu/cgi-bin/hgTables))
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
 
 ## Pipeline Workflow
 TBD - make diagram
 
 ## Usage
 ### Input
-<<<<<<< HEAD
 This pipeline takes a single input - the SraRunTable.txt metadata table for a particular GSE obtained from the [SRA Run Selector](https://www.ncbi.nlm.nih.gov/Traces/study/).
 
 TBD - image showing how to download/select particular runs
@@ -83,7 +72,6 @@ Format and automation of file renaming to reduce sample mislabeling. TBC
 Automation of... organism and RNA-seq strandedness detection. Need to modify file path to required .fa and .gtf files, and BED genome file for RSeQC. TBC
 
 ### 3. EISA and DESeq2 analysis
-=======
 This pipeline takes a single input - the `SraRunTable.txt` metadata table for a particular GSE obtained from the [SRA Run Selector](https://www.ncbi.nlm.nih.gov/Traces/study/).
 
 TBD - image showing how to download/select particular runs
@@ -102,5 +90,4 @@ TBD snakemake command
 A `conda` environment containing the FastQC and MultiQC packages is provided as `qc.yml` in the `env` directory.
 
 ### EISA and DESeq2 analysis
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
 Pairwise comparison only. TBC
