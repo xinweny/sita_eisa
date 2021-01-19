@@ -4,11 +4,7 @@ output: html_notebook
 ---
 ```{r setup, include=FALSE, echo=FALSE}
 require("knitr")
-<<<<<<< HEAD
 opts_knit$set(root.dir="~/mrc/project/sita_eisa/")
-=======
-opts_knit$set(root.dir="/Users/Pomato/mrc/project/sita_eisa/")
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
 ```
 
 
@@ -52,16 +48,7 @@ add_ensembl_symbol <- function (table) {
   geneList <- getBM(filters=filter,
                     attributes=c(filter, symbol),
                     values=genes,
-<<<<<<< HEAD
-                    mart=mart)
-  
-  if (!grepl("WBGene", genes[1], fixed=TRUE)) {
-    geneList <- distinct(geneList, ensembl_gene_id, .keep_all=TRUE)
-  }
-  
-=======
                     mart=mart) %>% distinct(ensembl_gene_id, .keep_all=TRUE)
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
   
   row.names(geneList) <- geneList[, 1]
   geneList[, 1] <- NULL
@@ -73,7 +60,6 @@ add_ensembl_symbol <- function (table) {
 }
 
 format_condition <- function (colnames) {
-<<<<<<< HEAD
   replace <- c("_[0-9]*$", "_rep[0-9]*$", "^[A-Z]{3}[0-9]+_", "^[0-9]+_")
   
   for (r in replace) {
@@ -81,27 +67,15 @@ format_condition <- function (colnames) {
   }
   
   return(colnames)
-=======
-  new_cond <- gsub("_[0-9]*$", "", colnames)
-  new_cond <- gsub("_rep[0-9]*$", "", new_cond)
-  new_cond <- gsub("GSM[0-9]*_", "", new_cond)
-  
-  return(new_cond)
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
 }
 ```
 
 ## Load count data
 Takes raw count tables of introns and exons obtained using the package QuasR. Details on how to obtain count tables for this analysis [here](https://rdrr.io/github/fmicompbio/eisaR/f/vignettes/eisaR.Rmd).
 ```{r load.data}
-<<<<<<< HEAD
 gse <- "CUS000002"
 selectConditions <- c("WT_None", "R62_None") # control vs. treatment
 alpha <- 0.05
-=======
-gse <- "GSE139592"
-selectConditions <- c("wt_none", "Abca7_none") # control vs. treatment
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
 
 exon <- read.table(glue("processed/{gse}_ExonicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
 intron <- read.table(glue("processed/{gse}_IntronicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
@@ -148,35 +122,24 @@ res_eisar <- runEISA(cntEx=exonsh, cntIn=intronsh,
                      recalcNormFactAfterFilt=TRUE,
                      recalcLibSizeAfterFilt=FALSE)
 
-<<<<<<< HEAD
 message(glue("No. of significant DE genes (FDR < {alpha}): "),
         nrow(res_eisar$tab.ExIn %>% filter(FDR < alpha)))
-=======
-message("No. of significant DE genes (FDR < 0.05): ", nrow(res_eisar$tab.ExIn %>% filter(FDR < 0.05)))
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
+
 
 # Add gene symbol
 res_eisar$tab.ExIn <- add_ensembl_symbol(res_eisar$tab.ExIn)
 
 # Ratio of up and down regulated significant genes
-<<<<<<< HEAD
+
 nUp <- nrow(filter(res_eisar$tab.ExIn, FDR < alpha & logFC > 0))
 nDown <- nrow(filter(res_eisar$tab.ExIn, FDR < alpha & logFC < 0))
-=======
-nUp <- nrow(filter(res_eisar$tab.ExIn, FDR < 0.05 & logFC > 0))
-nDown <- nrow(filter(res_eisar$tab.ExIn, FDR < 0.05 & logFC < 0))
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
 ratioUpDown <- nUp / nDown
 message("Ratio of up:down regulated genes: ", ratioUpDown)
 
 # EISA MA plot
 MAplot <- ggplot(res_eisar$tab.ExIn, aes(x=logCPM, y=logFC)) +
   geom_point(color="lightgrey") +
-<<<<<<< HEAD
   geom_point(data=res_eisar$tab.ExIn %>% filter(FDR < alpha),
-=======
-  geom_point(data=res_eisar$tab.ExIn %>% filter(FDR < 0.05),
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
              color="red") +
   labs(title=glue("{gse}: {conditions[1]} vs. {conditions[2]}"),
        caption=glue("UP={nUp}, DOWN={nDown}")) +
@@ -195,7 +158,6 @@ deGenes <- res_eisar$tab.ExIn %>% arrange(FDR, -logFC)
 write.table(deGenes, file=glue("./processed/{gse}_eisaDE_{conditions[1]}.{conditions[2]}.txt"), sep="\t", row.names=TRUE, col.names=TRUE, quote=FALSE)
 ```
 
-<<<<<<< HEAD
 ```{r custom_eisa}
 #### Normalisation and filtering ####
 # Normalisation
@@ -308,16 +270,11 @@ write.table(de, file=glue("./processed/{gse}_eisaDEcustom_{selectConditions[1]}.
 
 ```
 
-=======
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
 ## DESeq2
 Using the raw counts table for exons, the significant differentially expressed (DE) genes are determined with the package DESeq2.
 ```{r deseq}
 paired <- FALSE # Paired samples
-<<<<<<< HEAD
-=======
 alpha <- 0.05
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
 lfcThresh <- 0
 
 # Make column metadata
