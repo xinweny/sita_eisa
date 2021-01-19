@@ -1,0 +1,20 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE94144.
+
+JobID: 28017731
+======
+Time: Sat 29 Aug 00:39:51 BST 2020
+Running on master node: cpu-e-759
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE94144
+
+Nodes allocated:
+================
+cpu-e-759
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 python3 /home/xwy21/project/sita_eisa/script/01_download_fastqgz.py -m SraRunTable_GSE94144.txt -c 
+
+usage: 01_download_fastqgz.py [-h] -m M [-c C]
+01_download_fastqgz.py: error: argument -c: expected one argument

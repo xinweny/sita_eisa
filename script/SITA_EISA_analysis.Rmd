@@ -1,0 +1,358 @@
+---
+title: "SITA Analysis with EISA"
+output: html_notebook
+---
+```{r setup, include=FALSE, echo=FALSE}
+require("knitr")
+opts_knit$set(root.dir="~/mrc/project/sita_eisa/")
+```
+
+
+## Packages
+```{r packages}
+suppressPackageStartupMessages({
+  library(eisaR)
+  library(ggplot2)
+  library(dplyr)
+  library(glue)
+  library(DESeq2)
+  library(biomaRt)
+})
+```
+
+## Functions
+```{r functions}
+add_ensembl_symbol <- function (table) {
+  genes <- row.names(table)
+  
+  if (grepl("ENSG", genes[1], fixed=TRUE)) {
+    ensembl <- useMart("ensembl")
+    ensemblDataset <- "hsapiens_gene_ensembl"
+    symbol <- "hgnc_symbol"
+    filter <- "ensembl_gene_id"
+  } else if (grepl("ENSMUSG", genes[1], fixed=TRUE)) {
+    ensembl <- useMart("ensembl")
+    ensemblDataset <- "mmusculus_gene_ensembl"
+    symbol <- "mgi_symbol"
+    filter <- "ensembl_gene_id"
+  } else if (grepl("WBGene", genes[1], fixed=TRUE)) {
+    ensembl <- useMart(biomart = "parasite_mart", 
+                   host = "https://parasite.wormbase.org", 
+                   port = 443)
+    ensemblDataset <- "wbps_gene"
+    symbol <- "external_gene_id"
+    filter <- "wbps_gene_id"
+  }
+  
+  mart <- useDataset(ensemblDataset, ensembl)
+  geneList <- getBM(filters=filter,
+                    attributes=c(filter, symbol),
+                    values=genes,
+                    mart=mart)
+  
+  if (!grepl("WBGene", genes[1], fixed=TRUE)) {
+    geneList <- distinct(geneList, ensembl_gene_id, .keep_all=TRUE)
+  }
+  
+  
+  row.names(geneList) <- geneList[, 1]
+  geneList[, 1] <- NULL
+  
+  table$geneSymbol <- geneList[, 1][match(rownames(table), rownames(geneList))]
+  newTable <- table
+  
+  return(newTable)
+}
+
+format_condition <- function (colnames) {
+  replace <- c("_[0-9]*$", "_rep[0-9]*$", "^[A-Z]{3}[0-9]+_", "^[0-9]+_")
+  
+  for (r in replace) {
+    colnames <- gsub(r, "", colnames)
+  }
+  
+  return(colnames)
+}
+```
+
+## Load count data
+Takes raw count tables of introns and exons obtained using the package QuasR. Details on how to obtain count tables for this analysis [here](https://rdrr.io/github/fmicompbio/eisaR/f/vignettes/eisaR.Rmd).
+```{r load.data}
+gse <- "CUS000002"
+selectConditions <- c("WT_None", "R62_None") # control vs. treatment
+alpha <- 0.05
+
+exon <- read.table(glue("processed/{gse}_ExonicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
+intron <- read.table(glue("processed/{gse}_IntronicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
+
+exon <- exon %>% dplyr::select(matches(selectConditions)) %>% as.matrix()
+intron <- intron %>% dplyr::select(matches(selectConditions)) %>% as.matrix()
+
+head(exon)
+
+# Filter for genes which have ≥ 1 exon and intron
+shared <- intersect(rownames(exon), rownames(intron))
+exonsh <- exon[shared, ]
+intronsh <- intron[shared, ]
+
+message("No. of genes with ≥ 1 exon and intron: ", nrow(exonsh))
+
+# Checks
+allsh <- exonsh + intronsh
+fracIn <- colSums(intronsh)/colSums(allsh)
+summary(fracIn)
+
+unique(format_condition(colnames(exon)))
+```
+
+## EISA
+Run Exon Intron Split Analysis (EISA) on the raw intron and exon count tables for a certain GSE using . Outputs a MA plot that shows stress-induced transcriptional attenuation (SITA), a global downregulation in genes upon stress induction.
+```{r eisa}
+# Format and select conditions for each sample
+cond <- format_condition(colnames(exon))
+
+conditions <- unique(cond)
+cond <- factor(cond, levels=rev(conditions)) # condition / control
+
+stopifnot(all(colnames(exonsh) == colnames(intronsh)))
+
+res_eisar <- runEISA(cntEx=exonsh, cntIn=intronsh,
+                     cond=cond,
+                     method=NULL,
+                     modelSamples=TRUE,
+                     geneSelection="filterByExpr",
+                     statFramework="QLF",
+                     effects="predFC",
+                     pscnt=2,
+                     recalcNormFactAfterFilt=TRUE,
+                     recalcLibSizeAfterFilt=FALSE)
+
+message(glue("No. of significant DE genes (FDR < {alpha}): "),
+        nrow(res_eisar$tab.ExIn %>% filter(FDR < alpha)))
+
+# Add gene symbol
+res_eisar$tab.ExIn <- add_ensembl_symbol(res_eisar$tab.ExIn)
+
+# Ratio of up and down regulated significant genes
+nUp <- nrow(filter(res_eisar$tab.ExIn, FDR < alpha & logFC > 0))
+nDown <- nrow(filter(res_eisar$tab.ExIn, FDR < alpha & logFC < 0))
+ratioUpDown <- nUp / nDown
+message("Ratio of up:down regulated genes: ", ratioUpDown)
+
+# EISA MA plot
+MAplot <- ggplot(res_eisar$tab.ExIn, aes(x=logCPM, y=logFC)) +
+  geom_point(color="lightgrey") +
+  geom_point(data=res_eisar$tab.ExIn %>% filter(FDR < alpha),
+             color="red") +
+  labs(title=glue("{gse}: {conditions[1]} vs. {conditions[2]}"),
+       caption=glue("UP={nUp}, DOWN={nDown}")) +
+  theme_bw() +
+  theme(plot.title=element_text(size=15, face="bold"),
+        plot.caption=element_text(size=15))
+
+MAplot
+
+# Save output
+png(glue("processed/{gse}_eisaMAplot_{conditions[1]}.{conditions[2]}.png"))
+print(MAplot)
+dev.off()
+
+deGenes <- res_eisar$tab.ExIn %>% arrange(FDR, -logFC)
+write.table(deGenes, file=glue("./processed/{gse}_eisaDE_{conditions[1]}.{conditions[2]}.txt"), sep="\t", row.names=TRUE, col.names=TRUE, quote=FALSE)
+```
+
+```{r custom_eisa}
+#### Normalisation and filtering ####
+# Normalisation
+NLex <- log2(t(t(exon) / colSums(exon) * mean(colSums(exon))) + 8)
+NLin <-log2(t(t(intron) / colSums(intron) * mean(colSums(intron))) + 8)
+
+# Identify quantifiable genes
+quantGenes <- rownames(exon)[ rowMeans(NLex) > 5.0 & rowMeans(NLin) > 5.0 ]
+length(quantGenes)
+
+#### Statistical analysis ####
+library(edgeR)
+
+# Create DGEList object with exonic and intronic counts
+cntEx <- data.frame(exon)
+cntIn <- data.frame(intron)
+
+yEx <- DGEList(counts=cntEx, genes=data.frame(ENSEMBLID=rownames(cntEx)))
+yIn <- DGEList(counts=cntIn, genes=data.frame(ENSEMBLID=rownames(cntIn)))
+
+# Select quantifiable genes and normalise
+yEx <- yEx[quantGenes, ]
+yIn <- yIn[quantGenes, ]
+
+yEx <- calcNormFactors(yEx)
+yIn <- calcNormFactors(yIn)
+yIn$samples$norm.factors <- yEx$samples$norm.factors # Set size factor for intronic counts to exonic size factors
+
+# Design matrix with interaction term and batch effect
+# region <- factor(c(rep("ex", 6), rep("in", 6)), levels = c("in", "ex"))
+cond <- factor(c(rep(selectConditions[1], 3), rep(selectConditions[2], 3)),
+                   levels=selectConditions)
+batch <- factor(c(1, 2, 3, 3, 1, 2)) # c(1, 2, 3, 3, 1, 2) for None, c(1, 3, 2, 1, 3, 2) for HDGF
+design <- model.matrix(~ batch + cond)
+rownames(design) <- colnames(cntEx)
+
+# Estimate model parameters
+yEx <- estimateDisp(yEx, design)
+yIn <- estimateDisp(yIn, design)
+
+fitEx <- glmFit(yEx, design)
+fitIn <- glmFit(yIn, design)
+
+# Calculate likelihood-ratio between full and reduced models
+lrtEx <- glmLRT(fitEx)
+lrtIn <- glmLRT(fitIn)
+
+# Create results table
+ttEx <- topTags(lrtEx, n=nrow(y), sort.by="none")
+ttIn <- topTags(lrtIn, n=nrow(y), sort.by="none")
+
+head(ttEx$table[order(ttEx$table$FDR, decreasing=FALSE), ])
+head(ttIn$table[order(ttIn$table$FDR, decreasing=FALSE), ])
+
+#### Visualisation ####
+nUpEx <- nrow(filter(ttEx$table, FDR < alpha & logFC > 0))
+nDownEx <- nrow(filter(ttEx$table, FDR < alpha & logFC < 0))
+ratioUpDownEx <- nUpEx / nDownEx
+message("Ratio of up:down regulated genes (exonic): ", ratioUpDownEx)
+nUpIn <- nrow(filter(ttIn$table, FDR < alpha & logFC > 0))
+nDownIn <- nrow(filter(ttIn$table, FDR < alpha & logFC < 0))
+ratioUpDownIn <- nUpIn / nDownIn
+message("Ratio of up:down regulated genes (intronic): ", ratioUpDownIn)
+
+# MA plot exonic
+MAplot <- ggplot(ttEx$table, aes(x=logCPM, y=logFC)) +
+  geom_point(color="lightgrey") +
+  geom_point(data= ttEx$table %>% filter(FDR < 0.05),
+             color="red") +
+  labs(title=glue("{gse}: {unique(cond)[1]} vs. {unique(cond)[2]} (Exonic)"),
+       caption=glue("UP={nUpEx}, DOWN={nDownEx}")) +
+  theme_bw() +
+  theme(plot.title=element_text(size=15, face="bold"),
+        plot.caption=element_text(size=15))
+
+MAplot
+
+# Save output
+png(glue("processed/{gse}_eisaMAplot_{selectConditions[1]}.{selectConditions[2]}_exonic.png"))
+print(MAplot)
+dev.off()
+
+# MA plot intronic
+MAplot <- ggplot(ttIn$table, aes(x=logCPM, y=logFC)) +
+  geom_point(color="lightgrey") +
+  geom_point(data= ttIn$table %>% filter(FDR < 0.05),
+             color="red") +
+  labs(title=glue("{gse}: {unique(cond)[1]} vs. {unique(cond)[2]} (Intronic)"),
+       caption=glue("UP={nUpIn}, DOWN={nDownIn}")) +
+  theme_bw() +
+  theme(plot.title=element_text(size=15, face="bold"),
+        plot.caption=element_text(size=15))
+
+MAplot
+
+# Save output
+png(glue("processed/{gse}_eisaMAplot_{selectConditions[1]}.{selectConditions[2]}_intronic.png"))
+print(MAplot)
+dev.off()
+
+#### Differential genes ####
+de <- ttIn$table %>% 
+  filter(FDR < alpha) %>%
+  arrange(FDR)
+
+de$ENSEMBLID <- NULL
+de <- add_ensembl_symbol(de)
+
+write.table(de, file=glue("./processed/{gse}_eisaDEcustom_{selectConditions[1]}.{selectConditions[2]}.txt"), sep="\t", row.names=TRUE, col.names=TRUE, quote=FALSE)
+
+```
+
+## DESeq2
+Using the raw counts table for exons, the significant differentially expressed (DE) genes are determined with the package DESeq2.
+```{r deseq}
+paired <- FALSE # Paired samples
+lfcThresh <- 0
+
+# Make column metadata
+cond <- format_condition(colnames(exon))
+conditions <- unique(cond)
+
+if (paired) {
+  colData <- data.frame(row.names=colnames(exon),
+                        replicate=factor(gsub(".rep", "", colnames(exon)),
+                                         levels=seq.int(1:(ncol(exon) / 2))),
+                        condition=factor(cond,
+                                         levels=conditions))
+
+  dataset <- DESeqDataSetFromMatrix(countData=exon,
+                                  colData=colData,
+                                  design=~ replicate + condition)
+} else {
+  colData <- data.frame(row.names=colnames(exon),
+                        condition=factor(cond, levels=conditions))
+
+  dataset <- DESeqDataSetFromMatrix(countData=exon,
+                                    colData=colData,
+                                    design=~ condition)
+}
+
+# Set reference level as control
+dataset$condition <- relevel(dataset$condition, ref=conditions[1])
+
+dataset <- dataset[rowSums(counts(dataset)) >= 10, ] # pre-filter genes with no reads
+
+# Make DESeq2 dataset
+dds <- DESeq(dataset)
+coef <- tail(resultsNames(dds), n=1)
+
+# Heatmap
+# vst <- vst(dds, blind=TRUE)
+# png(glue("processed/{gse}_DESeqheatmap_{conditions[1]}.{conditions[2]}.png"))
+# print(pheatmap(cor(assay(vst))))
+# dev.off()
+
+# Run DESeq2
+res <- results(dds, name=coef,
+               alpha=alpha,
+               lfcThreshold=lfcThresh,
+               altHypothesis='greaterAbs',
+               pAdjustMethod='BH')
+resLFC <- lfcShrink(dds, coef=coef, res=res)
+
+summary(res)
+message(glue("No. of significant DE genes (FDR < {alpha}): "), sum(resLFC$padj < alpha, na.rm=TRUE))
+
+# Add gene symbol
+resLFC <- add_ensembl_symbol(resLFC)
+
+# Save DESeq results table to output
+deGenes <- as.data.frame(resLFC) %>% arrange(padj, desc(log2FoldChange)) # order by adjusted p-value and FC
+write.table(deGenes,
+            file=glue("processed/{gse}_DESeq_{conditions[1]}.{conditions[2]}.txt"),
+            row.names=TRUE, col.names=TRUE, sep="\t", quote=FALSE)
+
+# Ratio of up and down regulated significant genes
+nUp <- nrow(filter(deGenes, padj < alpha & log2FoldChange > 0))
+nDown <- nrow(filter(deGenes, padj < alpha & log2FoldChange < 0))
+ratioUpDown <- nUp / nDown
+message("Ratio of up:down regulated genes: ", ratioUpDown)
+
+## Visualisation
+resLFC <- resLFC[order(-resLFC$padj),]
+
+# DESeq2 MA plot
+DESeq2::plotMA(resLFC, main=glue("{gse}: {conditions[1]} vs. {conditions[2]}
+                                           UP={nUp}, DOWN={nDown}"))
+
+png(glue("processed/{gse}_DESeqMAplot_{conditions[1]}.{conditions[2]}.png"))
+print(DESeq2::plotMA(resLFC, main=glue("{gse}: {conditions[1]} vs. {conditions[2]}
+                                           UP={nUp}, DOWN={nDown}")))
+dev.off()
+```
+

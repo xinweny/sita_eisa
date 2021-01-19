@@ -1,0 +1,20 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/PRJNA532295.
+
+JobID: 28018320
+======
+Time: Sat 29 Aug 00:55:00 BST 2020
+Running on master node: cpu-e-761
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/PRJNA532295
+
+Nodes allocated:
+================
+cpu-e-761
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 python3 /home/xwy21/project/sita_eisa/script/01_download_fastqgz.py -m SraRunTable_PRJNA532295.txt -c Sample Name
+
+usage: 01_download_fastqgz.py [-h] -m M [-c C]
+01_download_fastqgz.py: error: unrecognized arguments: Name

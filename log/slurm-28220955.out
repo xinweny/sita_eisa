@@ -1,0 +1,24 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/PRJNA532295.
+
+JobID: 28220955
+======
+Time: Thu  3 Sep 13:45:57 BST 2020
+Running on master node: cpu-e-812
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/PRJNA532295
+
+Nodes allocated:
+================
+cpu-e-812
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 Rscript /home/xwy21/project/sita_eisa/script/02_alignment_and_counting.R -m SraRunTable_PRJNA532295.txt -t 32
+
+Creating QuasR sample file(s)...
+Not all samples found in pairs.
+Organism: Mus musculus
+Error in is.data.frame(x) : object 'exonCount' not found
+Calls: write.table -> is.data.frame
+Execution halted

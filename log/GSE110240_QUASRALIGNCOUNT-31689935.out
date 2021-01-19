@@ -1,0 +1,89 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 12
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	quasr_map_count
+	1
+Welcome to the CBC MILP Solver 
+Version: 2.9.0 
+Build Date: Feb 12 2015 
+
+command line - /home/xwy21/.local/lib/python3.6/site-packages/pulp/apis/../solverdir/cbc/linux/64/cbc /tmp/c7bf3b538a2c4c19b1c6eed5ce1e4687-pulp.mps max ratio None allow None threads None presolve on strong None gomory on knapsack on probing on branch printingOptions all solution /tmp/c7bf3b538a2c4c19b1c6eed5ce1e4687-pulp.sol (default strategy 1)
+At line 2 NAME          MODEL
+At line 3 ROWS
+At line 7 COLUMNS
+At line 13 RHS
+At line 16 BOUNDS
+At line 18 ENDATA
+Problem MODEL has 2 rows, 1 columns and 2 elements
+Coin0008I MODEL read with 0 errors
+String of None is illegal for double parameter ratioGap value remains 0
+String of None is illegal for double parameter allowableGap value remains 0
+String of None is illegal for integer parameter threads value remains 0
+String of None is illegal for integer parameter strongBranching value remains 5
+Option for gomoryCuts changed from ifmove to on
+Option for knapsackCuts changed from ifmove to on
+Continuous objective value is 2 - 0.00 seconds
+Cgl0004I processed model has 0 rows, 0 columns (0 integer (0 of which binary)) and 0 elements
+Cbc3007W No integer variables - nothing to do
+Cuts at root node changed objective from -2 to -1.79769e+308
+Probing was tried 0 times and created 0 cuts of which 0 were active after adding rounds of cuts (0.000 seconds)
+Gomory was tried 0 times and created 0 cuts of which 0 were active after adding rounds of cuts (0.000 seconds)
+Knapsack was tried 0 times and created 0 cuts of which 0 were active after adding rounds of cuts (0.000 seconds)
+Clique was tried 0 times and created 0 cuts of which 0 were active after adding rounds of cuts (0.000 seconds)
+MixedIntegerRounding2 was tried 0 times and created 0 cuts of which 0 were active after adding rounds of cuts (0.000 seconds)
+FlowCover was tried 0 times and created 0 cuts of which 0 were active after adding rounds of cuts (0.000 seconds)
+TwoMirCuts was tried 0 times and created 0 cuts of which 0 were active after adding rounds of cuts (0.000 seconds)
+
+Result - Optimal solution found
+
+Objective value:                2.00000000
+Enumerated nodes:               0
+Total iterations:               0
+Time (CPU seconds):             0.00
+Time (Wallclock seconds):       0.00
+
+Option for printingOptions changed from normal to all
+Total time (CPU seconds):       0.00   (Wallclock seconds):       0.00
+
+
+[Thu Nov 26 19:33:52 2020]
+rule quasr_map_count:
+    input: data/GSE110240/fastq/GSM2983109_G9a_0h_rep2_trimmed.fq.gz, data/GSE110240/fastq/GSM2983111_G9a_6h_rep2_trimmed.fq.gz, data/GSE110240/fastq/GSM2983105_WT_6h_rep2_trimmed.fq.gz, data/GSE110240/fastq/GSM2983112_G9a_12h_rep1_trimmed.fq.gz, data/GSE110240/fastq/GSM2983107_WT_12h_rep2_trimmed.fq.gz, data/GSE110240/fastq/GSM2983103_WT_0h_rep2_trimmed.fq.gz, data/GSE110240/fastq/GSM2983113_G9a_12h_rep2_trimmed.fq.gz, data/GSE110240/fastq/GSM2983102_WT_0h_rep1_trimmed.fq.gz, data/GSE110240/fastq/GSM2983104_WT_6h_rep1_trimmed.fq.gz, data/GSE110240/fastq/GSM2983108_G9a_0h_rep1_trimmed.fq.gz, data/GSE110240/fastq/GSM2983106_WT_12h_rep1_trimmed.fq.gz, data/GSE110240/fastq/GSM2983110_G9a_6h_rep1_trimmed.fq.gz
+    output: data/GSE110240/processed/GSE110240_ExonicCounts.txt, data/GSE110240/processed/GSE110240_IntronicCounts.txt
+    jobid: 0
+    resources: time_min=720, tasks=1, nodes=1, cpus=12
+
+alignment files missing - need to:
+    create 12 genomic alignment(s)
+Testing the compute nodes...OK
+Loading QuasR on the compute nodes...OK
+Available cores:
+cpu-e-14: 12
+Performing genomic alignments for 12 samples. See progress in the log file:
+/rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/data/GSE110240/QuasR_log_63073137b3ca.txt
+[E::hts_open_format] Failed to open file /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/data/GSE110240/cache/RtmpBfqMFQ/samToBam_631f6bc015eb/211000022280218.sam
+Error in checkForRemoteErrors(val) : 
+  one node produced an error: Error on cpu-e-14 processing sample /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/data/GSE110240/cache/RtmpBfqMFQ/GSM2983102_WT_0h_rep1.fq.gz631f2d04f591.fastq : failed to open SAM/BAM file
+  file: '/rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/data/GSE110240/cache/RtmpBfqMFQ/samToBam_631f6bc015eb/211000022280218.sam'
+Calls: qAlign ... clusterApply -> staticClusterApply -> checkForRemoteErrors
+Execution halted
+[Thu Nov 26 19:38:55 2020]
+Error in rule quasr_map_count:
+    jobid: 0
+    output: data/GSE110240/processed/GSE110240_ExonicCounts.txt, data/GSE110240/processed/GSE110240_IntronicCounts.txt
+
+RuleException:
+CalledProcessError in line 178 of /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/Snakefile:
+Command 'set -euo pipefail;  Rscript script/02_alignment_and_counting.R         -w data/GSE110240 -a TRUE         -f /rds/project/rs2099/rds-rs2099-toxgenomics/shared/drosophila/dmel-all-chromosome-r6.36.fa         -b /rds/project/rs2099/rds-rs2099-toxgenomics/shared/drosophila/BDGP6.ensembl.bed         -s /rds/project/rs2099/rds-rs2099-toxgenomics/shared/drosophila/dmel-all-r6.36.sqlite         -q SampleFile_SINGLE.txt         -t 12' returned non-zero exit status 1.
+  File "/home/xwy21/.local/lib/python3.6/site-packages/snakemake/executors/__init__.py", line 2189, in run_wrapper
+  File "/rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/Snakefile", line 178, in __rule_quasr_map_count
+  File "/home/xwy21/.local/lib/python3.6/site-packages/snakemake/executors/__init__.py", line 529, in _callback
+  File "/usr/local/software/spack/spack-0.11.2/opt/spack/linux-rhel7-x86_64/gcc-5.4.0/miniconda3-4.5.4-hivczbzklvoccmuifapprxz7humnmn5c/lib/python3.6/concurrent/futures/thread.py", line 56, in run
+  File "/home/xwy21/.local/lib/python3.6/site-packages/snakemake/executors/__init__.py", line 515, in cached_or_run
+  File "/home/xwy21/.local/lib/python3.6/site-packages/snakemake/executors/__init__.py", line 2201, in run_wrapper
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+slurmstepd: error: task_p_post_term: rmdir(/sys/fs/cgroup/cpuset/slurm31689935/slurm31689935.4294967294_0) failed Device or resource busy

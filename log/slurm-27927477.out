@@ -1,0 +1,33 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita/GSE79898.
+
+JobID: 27927477
+======
+Time: Fri 28 Aug 04:35:11 BST 2020
+Running on master node: cpu-e-1053
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita/GSE79898
+
+Nodes allocated:
+================
+cpu-e-1053
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 Rscript /home/xwy21/project/sita/script/02_alignment_and_counting.R -m SraRunTable_GSE79898.txt -t 16
+
+Creating QuasR sample file(s)...
+Organism: Mus musculus
+alignment files missing - need to:
+    create 15 genomic alignment(s)
+Testing the compute nodes...OK
+Loading QuasR on the compute nodes...OK
+Available cores:
+cpu-e-1053: 16
+Performing genomic alignments for 15 samples. See progress in the log file:
+/rds/project/rs2099/rds-rs2099-toxgenomics/sita/GSE79898/QuasR_log_bafb14bb4ec5.txt
+sh: line 1: 48725 Aborted                 '/home/xwy21/R/x86_64-pc-linux-gnu-library/4.0/Rhisat2/hisat2' '/rds/project/rs2099/rds-rs2099-toxgenomics/shared/mouse/GRCm38.primary_assembly.genome.fa.Rhisat2/hisat2Index' -1 '/rds/project/rs2099/rds-rs2099-toxgenomics/sita/GSE79898/cache/RtmpsEsJ4t/Control_rep1_1.fastq.gzbc9b36f957c4.fastq' -2 '/rds/project/rs2099/rds-rs2099-toxgenomics/sita/GSE79898/cache/RtmpsEsJ4t/Control_rep1_2.fastq.gzbc9b3122b301.fastq' --fr -k 2 --phred33 -p 16 -S '/rds/project/rs2099/rds-rs2099-toxgenomics/sita/GSE79898/cache/RtmpsEsJ4t/Control_rep1_1.fastq.gzbc9b36f957c4.fastqbc9bcd00f44.sam.tmp' 2>&1
+Error in checkForRemoteErrors(val) : 
+  one node produced an error: Error on cpu-e-1053 processing sample /rds/project/rs2099/rds-rs2099-toxgenomics/sita/GSE79898/cache/RtmpsEsJ4t/Control_rep1_1.fastq.gzbc9b36f957c4.fastq : hisat2 failed to perform the alignments
+Calls: qAlign ... clusterApply -> staticClusterApply -> checkForRemoteErrors
+Execution halted

@@ -1,0 +1,32 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE82043.
+
+JobID: 28253537
+======
+Time: Fri  4 Sep 07:50:46 BST 2020
+Running on master node: cpu-e-96
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE82043
+
+Nodes allocated:
+================
+cpu-e-96
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 Rscript /home/xwy21/project/sita_eisa/script/02_alignment_and_counting.R -m SraRunTable_GSE82043.txt -t 32
+
+Creating QuasR sample file(s)...
+Organism: Mus musculus
+alignment files missing - need to:
+    create 17 genomic alignment(s)
+Testing the compute nodes...OK
+Loading QuasR on the compute nodes...OK
+Available cores:
+cpu-e-96: 32
+Performing genomic alignments for 17 samples. See progress in the log file:
+/rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE82043/QuasR_log_1060f1c574896.txt
+Error in checkForRemoteErrors(val) : 
+  one node produced an error: Error on cpu-e-96 processing sample /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE82043/fastq/GSM2182503_Irg1_LPS+IFNg.fq.gz : cannot open the connection
+Calls: qAlign ... clusterApply -> staticClusterApply -> checkForRemoteErrors
+Execution halted

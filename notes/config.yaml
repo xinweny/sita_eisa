@@ -1,0 +1,11 @@
+jobs: 100
+cluster: "sbatch $(/home/xwy21/project/shared/script/parseJobID.sh {dependencies}) \
+--job-name={params.job_name} \
+--account=SAWARKAR-SL3-CPU \
+--partition=skylake \
+--time={resources.time_min} \
+--nodes={resources.nodes} \
+--ntasks={resources.tasks} \
+--cpus-per-task={resources.cpus} \
+--mail-type=END,FAIL \
+--output=\"./log/{params.job_name}-%j.out\""

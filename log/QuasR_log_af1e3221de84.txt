@@ -1,0 +1,7 @@
+[1] "Decompressing file on cpu-e-824 : /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/data/GSE110240/fastq/GSM2983102_WT_0h_rep1_trimmed.fq.gz"
+[1] "Executing hisat2 on cpu-e-824 using 32 cores. Parameters:"
+[1] "'/rds/project/rs2099/rds-rs2099-toxgenomics/shared/drosophila/Drosophila_melanogaster.BDGP6.28.dna.toplevel.fa.Rhisat2/hisat2Index' '/rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/data/GSE110240/cache/Rtmpaqy1n8/GSM2983102_WT_0h_rep1_trimmed.fq.gzaf415399df83.fastq' -k 2 --phred33 -p 32 -S '/rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/data/GSE110240/cache/Rtmpaqy1n8/GSM2983102_WT_0h_rep1_trimmed.fq.gzaf415399df83.fastqaf416fd0fabf.sam.tmp'"
+[1] "Number of filtered secondary alignments: 727252"
+[1] "Number of filtered overmapped alignments: 727252"
+[1] "Converting sam file to sorted bam file on cpu-e-824 : /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/data/GSE110240/cache/Rtmpaqy1n8/GSM2983102_WT_0h_rep1_trimmed.fq.gzaf415399df83.fastqaf416fd0fabf.sam"
+[1] "Error on cpu-e-824 processing sample /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/data/GSE110240/cache/Rtmpaqy1n8/GSM2983102_WT_0h_rep1_trimmed.fq.gzaf415399df83.fastq : failed to open SAM/BAM file\n  file: '/rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/data/GSE110240/cache/Rtmpaqy1n8/samToBam_af412e695b56/211000022278262.sam'"

@@ -1,0 +1,21 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita/naprt_macrophage.
+
+JobID: 27359363
+======
+Time: Tue Aug 11 14:34:24 BST 2020
+Running on master node: cpu-e-252
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita/naprt_macrophage
+
+Nodes allocated:
+================
+cpu-e-252
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 Rscript /home/xwy21/project/sita/script/03_counting.R -i SampleFile.txt -g /rds/project/rs2099/rds-rs2099-toxgenomics/shared/human/GRCh38.primary_assembly.genome.fa -a /rds/project/rs2099/rds-rs2099-toxgenomics/shared/human/txdb.hg38.gencode.v34.sqlite
+
+Error in args$g : object of type 'closure' is not subsettable
+Calls: qAlign -> createQProject
+Execution halted

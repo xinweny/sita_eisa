@@ -1,0 +1,24 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE115094.
+
+JobID: 28217803
+======
+Time: Thu  3 Sep 13:42:33 BST 2020
+Running on master node: cpu-e-333
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE115094
+
+Nodes allocated:
+================
+cpu-e-333
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 Rscript /home/xwy21/project/sita_eisa/script/02_alignment_and_counting.R -m SraRunTable_GSE115094.txt -t 32
+
+QuasR sample file(s) already created.
+Organism: Mus musculus
+Error in h(simpleError(msg, call)) : 
+  error in evaluating the argument 'x' in selecting a method for function 'sort': invalid first argument
+Calls: qAlign ... FUN -> sort -> sample.int -> .handleSimpleError -> h
+Execution halted

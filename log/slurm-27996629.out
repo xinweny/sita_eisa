@@ -1,0 +1,39 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE97538.
+
+JobID: 27996629
+======
+Time: Fri 28 Aug 12:53:49 BST 2020
+Running on master node: cpu-e-150
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE97538
+
+Nodes allocated:
+================
+cpu-e-150
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 Rscript /home/xwy21/project/sita_eisa/script/02_alignment_and_counting.R -m SraRunTable_GSE97538.txt -t 8
+
+Creating QuasR sample file(s)...
+Organism: Mus musculus
+alignment files missing - need to:
+    create 19 genomic alignment(s)
+Testing the compute nodes...OK
+Loading QuasR on the compute nodes...OK
+Available cores:
+cpu-e-150: 8
+Performing genomic alignments for 19 samples. See progress in the log file:
+/rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE97538/QuasR_log_225023a214d90.txt
+[bam_sort_core] merging from 1 files and 1 in-memory blocks...
+[bam_sort_core] merging from 1 files and 1 in-memory blocks...
+[bam_sort_core] merging from 1 files and 1 in-memory blocks...
+[bam_sort_core] merging from 1 files and 1 in-memory blocks...
+[bam_sort_core] merging from 1 files and 1 in-memory blocks...
+[bam_sort_core] merging from 1 files and 1 in-memory blocks...
+[bam_sort_core] merging from 1 files and 1 in-memory blocks...
+[bam_sort_core] merging from 1 files and 1 in-memory blocks...
+[bam_sort_core] merging from 1 files and 1 in-memory blocks...
+[bam_sort_core] merging from 1 files and 1 in-memory blocks...
+[bam_sort_core] merging from 1 files and 1 in-memory blocks...

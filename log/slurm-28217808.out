@@ -1,0 +1,39 @@
+Changed directory to /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE90046.
+
+JobID: 28217808
+======
+Time: Thu  3 Sep 13:43:46 BST 2020
+Running on master node: cpu-e-948
+Current directory: /rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE90046
+
+Nodes allocated:
+================
+cpu-e-948
+
+numtasks=1, numnodes=1, mpi_tasks_per_node=1 (OMP_NUM_THREADS=1)
+
+Executing command:
+==================
+mpirun -ppn 1 -np 1 Rscript /home/xwy21/project/sita_eisa/script/02_alignment_and_counting.R -m SraRunTable_GSE90046.txt -t 32
+
+Creating QuasR sample file(s)...
+Organism: Mus musculus
+alignment files missing - need to:
+    create 21 genomic alignment(s)
+Testing the compute nodes...OK
+Loading QuasR on the compute nodes...OK
+Available cores:
+cpu-e-948: 32
+Performing genomic alignments for 21 samples. See progress in the log file:
+/rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/GSE90046/QuasR_log_5f609363502cd.txt
+Genomic alignments have been created successfully
+
+sh: beta: No such file or directory
+
+
+Error in if (libraryLayout == "PairEnd") { : 
+  missing value where TRUE/FALSE needed
+In addition: Warning message:
+In system(glue("infer_experiment.py -r {bedGenome} -i {bamFile}"),  :
+  running command 'infer_experiment.py -r /rds/project/rs2099/rds-rs2099-toxgenomics/shared/mouse/mm10_Gencode_VM18.bed -i bam/GSM2396049_LysMCre-CEBP<beta>flfl_LPS+IFNg_5f609450af17f.bam' had status 1
+Execution halted

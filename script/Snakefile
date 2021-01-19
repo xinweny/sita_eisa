@@ -1,0 +1,180 @@
+#### Packages ####
+import pandas as pd
+import glob, os
+
+#### Functions ####
+def get_layout(metadata_path):
+    metadata = pd.read_csv(metadata_path, header=0, sep=',')
+
+    return metadata['LibraryLayout'][0]
+
+def get_organism(metadata_path):
+    metadata = pd.read_csv(metadata_path, header=0, sep=',')
+    organism_name = metadata['Organism'][0]
+
+    return organism_name.replace(' ', '_').lower()
+
+def get_samples(path, ext):
+    samples = set([os.path.basename(sample).replace(f".{ext}", '') for sample in glob.glob(f"{path}*.{ext}")
+              if not any(match in os.path.basename(sample) for match in ['trimmed', 'val'])])
+
+    if LAYOUT == 'PAIRED':
+        samples = set([sample[:-2] for sample in samples])
+
+    return samples
+
+def get_raw_reads(wcs):
+    if LAYOUT == 'PAIRED':  # Paired-end
+        return expand(f"{PREFIX}/fastq/{{sample}}_{{i}}.fq.gz", sample=SAMPLES, i=[1, 2])
+
+    if LAYOUT == 'SINGLE':  # Single-end
+        return expand(f"{PREFIX}/fastq/{{sample}}.fq.gz", sample=SAMPLES)
+
+def get_trimmed_reads(wcs):
+    if LAYOUT == 'PAIRED':  # Paired-end
+        return expand(f"{PREFIX}/fastq/{{sample}}_{{i}}_val_{{i}}.fq.gz", sample=SAMPLES, i=[1, 2])
+
+    if LAYOUT == 'SINGLE':  # Single-end
+        return expand(f"{PREFIX}/fastq/{{sample}}_trimmed.fq.gz", sample=SAMPLES)
+
+def get_fastqc(wcs):
+    if LAYOUT == 'PAIRED':  # Paired-end
+        return expand(f"{PREFIX}/qc/{{sample}}_{{i}}_fastqc.html", sample=SAMPLES, i=[1, 2])
+
+    if LAYOUT == 'SINGLE':  # Single-end
+        return expand(f"{PREFIX}/qc/{{sample}}_fastqc.html", sample=SAMPLES)
+
+def custom_param(name, default):
+    try:
+        param = config[name]
+
+        return param
+
+    except KeyError:
+        return default
+
+#### Config ####
+configfile: "config/config.yaml"
+workdir: config['base']
+localrules: all, multiqc
+
+PREFIX = f"data/{config['GSE']}"
+
+if os.path.exists(f"{PREFIX}/SraRunTable_{config['GSE']}.txt"):
+    LAYOUT = get_layout(f"{PREFIX}/SraRunTable_{config['GSE']}.txt")
+    ORGANISM = get_organism(f"{PREFIX}/SraRunTable_{config['GSE']}.txt")
+else:
+    LAYOUT = config['layout']
+    ORGANISM = config['organism']
+
+SAMPLES = get_samples(f"{PREFIX}/fastq/", 'fq.gz')
+
+#### Workflow ####
+rule all:
+    input:
+        f"{PREFIX}/processed/{config['GSE']}_ExonicCounts.txt",
+        f"{PREFIX}/processed/{config['GSE']}_IntronicCounts.txt",
+        f"{PREFIX}/qc/multiqc_report.html"
+
+rule trimgalore_single:
+    input:
+        get_raw_reads
+    output:
+        expand(f"{PREFIX}/fastq/{{sample}}_trimmed.fq.gz", sample=SAMPLES)
+    resources:
+        time_min = int(custom_param('trim_time', 120)),
+        cpus = len(SAMPLES) if len(SAMPLES) < 32 else 32
+    params:
+        job_name = f"{config['GSE']}_TRIMSINGLE"
+    shell:
+        f"""trim_galore -j {{resources.cpus}} --stringency 3 \
+            -o {PREFIX}/fastq {{input}}"""
+
+rule trimgalore_paired:
+    input:
+        get_raw_reads
+    output:
+        expand(f"{PREFIX}/fastq/{{sample}}_{{i}}_val_{{i}}.fq.gz", sample=SAMPLES, i=[1, 2])
+    resources:
+        time_min = int(custom_param('trim_time', 120)),
+        cpus = len(SAMPLES) * 2 if len(SAMPLES) < 16 else 32
+    params:
+        job_name = f"{config['GSE']}_TRIMPAIRED"
+    shell:
+        f"""trim_galore -j {{resources.cpus}} --stringency 3 --paired \
+            -o {PREFIX}/fastq {{input}}"""
+
+rule fastqc_single:
+    input:
+        get_raw_reads
+    output:
+        expand(f"{PREFIX}/qc/{{sample}}_fastqc.html", sample=SAMPLES)
+    conda:
+        "env/qc.yml"
+    resources:
+        time_min = 120,
+        cpus = len(SAMPLES) if len(SAMPLES) < 32 else 32
+    params:
+        job_name = f"{config['GSE']}_FASTQC"
+    shell:
+        f"fastqc -t {{resources.cpus}} -o {PREFIX}/qc {{input}}"
+
+rule fastqc_paired:
+    input:
+        get_raw_reads
+    output:
+        expand(f"{PREFIX}/qc/{{sample}}_{{i}}_fastqc.html", sample=SAMPLES, i=[1, 2])
+    conda:
+        "env/qc.yml"
+    resources:
+        time_min = 120,
+        cpus = len(SAMPLES) * 2 if len(SAMPLES) < 16 else 32
+    params:
+        job_name = f"{config['GSE']}_FASTQC"
+    shell:
+        f"fastqc -t {{resources.cpus}} -o {PREFIX}/qc {{input}}"
+
+rule quasr_map_count:
+    input:
+        reads = get_trimmed_reads
+    output:
+        f"{PREFIX}/processed/{config['GSE']}_ExonicCounts.txt",
+        f"{PREFIX}/processed/{config['GSE']}_IntronicCounts.txt"
+    resources:
+        time_min = 720,
+        cpus = int(custom_param('quasr_cpus', len(SAMPLES) if len(SAMPLES) < 32 else 32))
+    params:
+        job_name = f"{config['GSE']}_QUASRALIGNCOUNT",
+        spliced = str(custom_param('spliced', 'TRUE')),
+        fa_genome = config[ORGANISM]['fasta'],
+        bed_genome = config[ORGANISM]['gene_bed'],
+        gtf = config[ORGANISM]['gtf']
+    run:
+        if not os.path.isdir(f"{PREFIX}/bam") or not os.path.isdir(f"{PREFIX}/cache"):
+            shell(f"mkdir {PREFIX}/bam {PREFIX}/cache")
+
+        if not os.path.isfile(f"{PREFIX}/SampleFile_{LAYOUT}.txt"):
+            shell(f"python3 script/generate_samplefile_trimmed.py \
+            -w {PREFIX} \
+            -l {LAYOUT} -e fq.gz")
+
+        shell(f"""Rscript script/02_alignment_and_counting.R \
+        -w {PREFIX} -a {{params.spliced}} \
+        -f {{params.fa_genome}} \
+        -b {{params.bed_genome}} \
+        -g {{params.gtf}} \
+        -q SampleFile_{LAYOUT}.txt \
+        -t {{resources.cpus}}
+        """)
+
+rule multiqc:
+    input:
+        qc_report = get_fastqc,
+        exon_count = f"{PREFIX}/processed/{config['GSE']}_ExonicCounts.txt",
+        intron_count = f"{PREFIX}/processed/{config['GSE']}_IntronicCounts.txt"
+    output:
+        f"{PREFIX}/qc/multiqc_report.html"
+    conda:
+        "env/qc.yml"
+    shell:
+        f"multiqc -o {PREFIX}/qc {PREFIX}"

@@ -1,0 +1,18 @@
+#### WORM ####
+CUS000001: D1_control vs. D1_30minHS
+0 out of 1128 (0.0%) EISA genes have 0 intronic counts.
+
+Total exome size = 6093595
+Total introme size = 13580703
+Proportion of introme vs. exome = 2.2286848732152365
+
+#### MOUSE ####
+GSE123596: M0_1h vs. LPS_1h
+0 out of 3393 (0.0%) EISA genes have 0 intronic counts.
+
+Total exome size = 35337028
+Total introme size = 371233403
+Proportion of introme vs. exome = 10.505507226017988
+
+Lowest intronic proportion which shows SITA = 0.006452 (GSE74724: Oligo-CTRL-11m vs. Oligo-G37R-11m).
+However, no. of significant genes in EISA = 34.
