@@ -82,7 +82,11 @@ def aspera_download(srr, paired=False):
     return sys_value
 
 def samplename_from_metadata(gsm, metadata_df, columns):
+<<<<<<< HEAD
     info = [str(metadata_df.loc[metadata_df['Sample Name'] == gsm, col].iloc[0]) for col in columns]
+=======
+    info = [metadata_df.loc[metadata_df['Sample Name'] == gsm, col].iloc[0] for col in columns]
+>>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
     name = re.sub(r'[\/:]', "", '_'.join(info))
 
     return name

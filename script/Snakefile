@@ -44,6 +44,7 @@ def get_fastqc(wcs):
     if LAYOUT == 'SINGLE':  # Single-end
         return expand(f"{PREFIX}/qc/{{sample}}_fastqc.html", sample=SAMPLES)
 
+<<<<<<< HEAD
 def custom_param(name, default):
     try:
         param = config[name]
@@ -53,12 +54,15 @@ def custom_param(name, default):
     except KeyError:
         return default
 
+=======
+>>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
 #### Config ####
 configfile: "config/config.yaml"
 workdir: config['base']
 localrules: all, multiqc
 
 PREFIX = f"data/{config['GSE']}"
+<<<<<<< HEAD
 
 if os.path.exists(f"{PREFIX}/SraRunTable_{config['GSE']}.txt"):
     LAYOUT = get_layout(f"{PREFIX}/SraRunTable_{config['GSE']}.txt")
@@ -67,6 +71,10 @@ else:
     LAYOUT = config['layout']
     ORGANISM = config['organism']
 
+=======
+LAYOUT = get_layout(f"{PREFIX}/SraRunTable_{config['GSE']}.txt")
+ORGANISM = get_organism(f"{PREFIX}/SraRunTable_{config['GSE']}.txt")
+>>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
 SAMPLES = get_samples(f"{PREFIX}/fastq/", 'fq.gz')
 
 #### Workflow ####
@@ -82,7 +90,13 @@ rule trimgalore_single:
     output:
         expand(f"{PREFIX}/fastq/{{sample}}_trimmed.fq.gz", sample=SAMPLES)
     resources:
+<<<<<<< HEAD
         time_min = int(custom_param('trim_time', 120)),
+=======
+        time_min = 120,
+        nodes = 1,
+        tasks = 1,
+>>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
         cpus = len(SAMPLES) if len(SAMPLES) < 32 else 32
     params:
         job_name = f"{config['GSE']}_TRIMSINGLE"
@@ -96,7 +110,13 @@ rule trimgalore_paired:
     output:
         expand(f"{PREFIX}/fastq/{{sample}}_{{i}}_val_{{i}}.fq.gz", sample=SAMPLES, i=[1, 2])
     resources:
+<<<<<<< HEAD
         time_min = int(custom_param('trim_time', 120)),
+=======
+        time_min = 120,
+        nodes = 1,
+        tasks = 1,
+>>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
         cpus = len(SAMPLES) * 2 if len(SAMPLES) < 16 else 32
     params:
         job_name = f"{config['GSE']}_TRIMPAIRED"
@@ -113,6 +133,11 @@ rule fastqc_single:
         "env/qc.yml"
     resources:
         time_min = 120,
+<<<<<<< HEAD
+=======
+        nodes = 1,
+        tasks = 1,
+>>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
         cpus = len(SAMPLES) if len(SAMPLES) < 32 else 32
     params:
         job_name = f"{config['GSE']}_FASTQC"
@@ -128,6 +153,11 @@ rule fastqc_paired:
         "env/qc.yml"
     resources:
         time_min = 120,
+<<<<<<< HEAD
+=======
+        nodes = 1,
+        tasks = 1,
+>>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
         cpus = len(SAMPLES) * 2 if len(SAMPLES) < 16 else 32
     params:
         job_name = f"{config['GSE']}_FASTQC"
@@ -136,12 +166,17 @@ rule fastqc_paired:
 
 rule quasr_map_count:
     input:
+<<<<<<< HEAD
+=======
+        metadata = f"{config['base']}/{PREFIX}/SraRunTable_{config['GSE']}.txt",
+>>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
         reads = get_trimmed_reads
     output:
         f"{PREFIX}/processed/{config['GSE']}_ExonicCounts.txt",
         f"{PREFIX}/processed/{config['GSE']}_IntronicCounts.txt"
     resources:
         time_min = 720,
+<<<<<<< HEAD
         cpus = int(custom_param('quasr_cpus', len(SAMPLES) if len(SAMPLES) < 32 else 32))
     params:
         job_name = f"{config['GSE']}_QUASRALIGNCOUNT",
@@ -149,6 +184,16 @@ rule quasr_map_count:
         fa_genome = config[ORGANISM]['fasta'],
         bed_genome = config[ORGANISM]['gene_bed'],
         gtf = config[ORGANISM]['gtf']
+=======
+        tasks = 1,
+        nodes = 1,
+        cpus = len(SAMPLES) if len(SAMPLES) < 16 else 32
+    params:
+        job_name = f"{config['GSE']}_QUASRALIGNCOUNT",
+        fa_genome = config['fasta'][ORGANISM],
+        bed_genome = config['bed'][ORGANISM],
+        txdb = config['txdb'][ORGANISM]
+>>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
     run:
         if not os.path.isdir(f"{PREFIX}/bam") or not os.path.isdir(f"{PREFIX}/cache"):
             shell(f"mkdir {PREFIX}/bam {PREFIX}/cache")
@@ -156,6 +201,7 @@ rule quasr_map_count:
         if not os.path.isfile(f"{PREFIX}/SampleFile_{LAYOUT}.txt"):
             shell(f"python3 script/generate_samplefile_trimmed.py \
             -w {PREFIX} \
+<<<<<<< HEAD
             -l {LAYOUT} -e fq.gz")
 
         shell(f"""Rscript script/02_alignment_and_counting.R \
@@ -163,6 +209,15 @@ rule quasr_map_count:
         -f {{params.fa_genome}} \
         -b {{params.bed_genome}} \
         -g {{params.gtf}} \
+=======
+            -m {{input.metadata}} -e fq.gz")
+
+        shell(f"""Rscript script/02_alignment_and_counting.R \
+        -w {PREFIX} \
+        -f {{params.fa_genome}} \
+        -b {{params.bed_genome}} \
+        -s {{params.txdb}} \
+>>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
         -q SampleFile_{LAYOUT}.txt \
         -t {{resources.cpus}}
         """)
