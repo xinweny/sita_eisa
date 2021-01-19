@@ -60,7 +60,6 @@ TBD - make diagram
 
 ## Usage
 ### Input
-<<<<<<< HEAD
 This pipeline takes a single input - the SraRunTable.txt metadata table for a particular GSE obtained from the [SRA Run Selector](https://www.ncbi.nlm.nih.gov/Traces/study/).
 
 TBD - image showing how to download/select particular runs
@@ -73,7 +72,6 @@ Format and automation of file renaming to reduce sample mislabeling. TBC
 Automation of... organism and RNA-seq strandedness detection. Need to modify file path to required .fa and .gtf files, and BED genome file for RSeQC. TBC
 
 ### 3. EISA and DESeq2 analysis
-=======
 This pipeline takes a single input - the `SraRunTable.txt` metadata table for a particular GSE obtained from the [SRA Run Selector](https://www.ncbi.nlm.nih.gov/Traces/study/).
 
 TBD - image showing how to download/select particular runs
