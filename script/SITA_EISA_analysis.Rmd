@@ -75,7 +75,7 @@ Takes raw count tables of introns and exons obtained using the package QuasR. De
 ```{r load.data}
 gse <- "CUS000002"
 selectConditions <- c("WT_None", "R62_None") # control vs. treatment
-alpha <- 0.05
+alpha <- 0.15
 
 exon <- read.table(glue("processed/{gse}_ExonicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
 intron <- read.table(glue("processed/{gse}_IntronicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
@@ -206,8 +206,8 @@ lrtEx <- glmLRT(fitEx)
 lrtIn <- glmLRT(fitIn)
 
 # Create results table
-ttEx <- topTags(lrtEx, n=nrow(y), sort.by="none")
-ttIn <- topTags(lrtIn, n=nrow(y), sort.by="none")
+ttEx <- topTags(lrtEx, n=nrow(yEx), sort.by="none")
+ttIn <- topTags(lrtIn, n=nrow(yEx), sort.by="none")
 
 head(ttEx$table[order(ttEx$table$FDR, decreasing=FALSE), ])
 head(ttIn$table[order(ttIn$table$FDR, decreasing=FALSE), ])
@@ -224,37 +224,43 @@ message("Ratio of up:down regulated genes (intronic): ", ratioUpDownIn)
 
 # MA plot exonic
 MAplot <- ggplot(ttEx$table, aes(x=logCPM, y=logFC)) +
-  geom_point(color="lightgrey") +
-  geom_point(data= ttEx$table %>% filter(FDR < 0.05),
-             color="red") +
-  labs(title=glue("{gse}: {unique(cond)[1]} vs. {unique(cond)[2]} (Exonic)"),
+  geom_point(shape=21, color="black", fill="lightgrey") +
+  geom_point(data= ttEx$table %>% filter(FDR < alpha),
+             shape=21, color="black", fill="red") +
+  labs(title=glue("{unique(cond)[1]} vs. {unique(cond)[2]}, α={alpha} (Exonic)"),
        caption=glue("UP={nUpEx}, DOWN={nDownEx}")) +
-  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        panel.background=element_blank(),
+        axis.line=element_line(colour="black")) +
   theme(plot.title=element_text(size=15, face="bold"),
         plot.caption=element_text(size=15))
 
 MAplot
 
 # Save output
-png(glue("processed/{gse}_eisaMAplot_{selectConditions[1]}.{selectConditions[2]}_exonic.png"))
+png(glue("processed/{gse}_eisaMAplot_{selectConditions[1]}.{selectConditions[2]}_exonic_{alpha}.png"))
 print(MAplot)
 dev.off()
 
 # MA plot intronic
 MAplot <- ggplot(ttIn$table, aes(x=logCPM, y=logFC)) +
-  geom_point(color="lightgrey") +
-  geom_point(data= ttIn$table %>% filter(FDR < 0.05),
-             color="red") +
-  labs(title=glue("{gse}: {unique(cond)[1]} vs. {unique(cond)[2]} (Intronic)"),
+  geom_point(shape=21, color="black", fill="lightgrey") +
+  geom_point(data= ttIn$table %>% filter(FDR < alpha),
+             shape=21, color="black", fill="red") +
+  labs(title=glue("{unique(cond)[1]} vs. {unique(cond)[2]}, α={alpha} (Intronic)"),
        caption=glue("UP={nUpIn}, DOWN={nDownIn}")) +
-  theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        panel.background=element_blank(),
+        axis.line=element_line(colour="black")) +
   theme(plot.title=element_text(size=15, face="bold"),
         plot.caption=element_text(size=15))
 
 MAplot
 
 # Save output
-png(glue("processed/{gse}_eisaMAplot_{selectConditions[1]}.{selectConditions[2]}_intronic.png"))
+png(glue("processed/{gse}_eisaMAplot_{selectConditions[1]}.{selectConditions[2]}_intronic_{alpha}.png"))
 print(MAplot)
 dev.off()
 
@@ -321,16 +327,15 @@ res <- results(dds, name=coef,
                lfcThreshold=lfcThresh,
                altHypothesis='greaterAbs',
                pAdjustMethod='BH')
-resLFC <- lfcShrink(dds, coef=coef, res=res)
 
 summary(res)
-message(glue("No. of significant DE genes (FDR < {alpha}): "), sum(resLFC$padj < alpha, na.rm=TRUE))
+message(glue("No. of significant DE genes (FDR < {alpha}): "), sum(res$padj < alpha, na.rm=TRUE))
 
 # Add gene symbol
-resLFC <- add_ensembl_symbol(resLFC)
+res <- add_ensembl_symbol(res)
 
 # Save DESeq results table to output
-deGenes <- as.data.frame(resLFC) %>% arrange(padj, desc(log2FoldChange)) # order by adjusted p-value and FC
+deGenes <- as.data.frame(res) %>% arrange(padj, desc(log2FoldChange)) # order by adjusted p-value and FC
 write.table(deGenes,
             file=glue("processed/{gse}_DESeq_{conditions[1]}.{conditions[2]}.txt"),
             row.names=TRUE, col.names=TRUE, sep="\t", quote=FALSE)
@@ -342,14 +347,14 @@ ratioUpDown <- nUp / nDown
 message("Ratio of up:down regulated genes: ", ratioUpDown)
 
 ## Visualisation
-resLFC <- resLFC[order(-resLFC$padj),]
+res <- res[order(-res$padj),]
 
 # DESeq2 MA plot
-DESeq2::plotMA(resLFC, main=glue("{gse}: {conditions[1]} vs. {conditions[2]}
+DESeq2::plotMA(res, main=glue("{gse}: {conditions[1]} vs. {conditions[2]}
                                            UP={nUp}, DOWN={nDown}"))
 
 png(glue("processed/{gse}_DESeqMAplot_{conditions[1]}.{conditions[2]}.png"))
-print(DESeq2::plotMA(resLFC, main=glue("{gse}: {conditions[1]} vs. {conditions[2]}
+print(DESeq2::plotMA(res, main=glue("{gse}: {conditions[1]} vs. {conditions[2]}
                                            UP={nUp}, DOWN={nDown}")))
 dev.off()
 ```
