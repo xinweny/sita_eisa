@@ -73,9 +73,9 @@ format_condition <- function (colnames) {
 ## Load count data
 Takes raw count tables of introns and exons obtained using the package QuasR. Details on how to obtain count tables for this analysis [here](https://rdrr.io/github/fmicompbio/eisaR/f/vignettes/eisaR.Rmd).
 ```{r load.data}
-gse <- "CUS000002"
-selectConditions <- c("WT_None", "R62_None") # control vs. treatment
-alpha <- 0.15
+gse <- "GSE110243"
+selectConditions <- c("WT_control", "WT_LPS$") # control vs. treatment
+alpha <- 0.05
 
 exon <- read.table(glue("processed/{gse}_ExonicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
 intron <- read.table(glue("processed/{gse}_IntronicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
@@ -347,7 +347,7 @@ ratioUpDown <- nUp / nDown
 message("Ratio of up:down regulated genes: ", ratioUpDown)
 
 ## Visualisation
-res <- res[order(-res$padj),]
+res <- res[order(-res$padj), ]
 
 # DESeq2 MA plot
 DESeq2::plotMA(res, main=glue("{gse}: {conditions[1]} vs. {conditions[2]}
