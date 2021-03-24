@@ -73,13 +73,48 @@ format_condition <- function (colnames) {
 ## Load count data
 Takes raw count tables of introns and exons obtained using the package QuasR. Details on how to obtain count tables for this analysis [here](https://rdrr.io/github/fmicompbio/eisaR/f/vignettes/eisaR.Rmd).
 ```{r load.data}
-gse <- "GSE110243"
-selectConditions <- c("WT_control", "WT_LPS$") # control vs. treatment
+#### Parameters ####
+gse <- "GSE47817"
+selectConditions <- c("HSC_M04", "HSC_M24") # control vs. treatment
 alpha <- 0.05
 
+#### Load data ####
 exon <- read.table(glue("processed/{gse}_ExonicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
 intron <- read.table(glue("processed/{gse}_IntronicCounts.txt"), header=TRUE, sep="\t", row.names=1, check.names=FALSE)
 
+#### PCA ####
+# Create DDS object
+if (!(file.exists(glue("processed/{gse}_PCA_exon.png")))) {
+  colData.ex <- data.frame(row.names=colnames(exon),
+                           condition=format_condition(colnames(exon)))
+  dds.ex <- DESeqDataSetFromMatrix(countData=exon,
+                                   colData=colData.ex,
+                                   design=~condition)
+  colData.in <- data.frame(row.names=colnames(intron),
+                           condition=format_condition(colnames(intron)))
+  dds.in <- DESeqDataSetFromMatrix(countData=intron,
+                                   colData=colData.in,
+                                   design=~condition)
+  
+  # PCA plot
+  rld.ex <- vst(dds.ex, blind=TRUE)
+  rld.in <- vst(dds.in, blind=TRUE)
+  
+  png(glue("processed/{gse}_PCA_exon.png"))
+  plotPCA(rld.ex) + 
+    ggtitle(glue("{gse}: Exonic counts"))
+    # geom_text(aes(label=colnames(rld.ex)), position=position_nudge(y=1))
+  dev.off()
+  
+  png(glue("processed/{gse}_PCA_intron.png"))
+  plotPCA(rld.in) + 
+    ggtitle(glue("{gse}: Intronic counts"))
+    # geom_text(aes(label=colnames(rld.in)), position=position_nudge(y=1))
+  dev.off()
+}
+
+#### Filtering ####
+# Select columns
 exon <- exon %>% dplyr::select(matches(selectConditions)) %>% as.matrix()
 intron <- intron %>% dplyr::select(matches(selectConditions)) %>% as.matrix()
 
@@ -94,7 +129,7 @@ message("No. of genes with ≥ 1 exon and intron: ", nrow(exonsh))
 
 # Checks
 allsh <- exonsh + intronsh
-fracIn <- colSums(intronsh)/colSums(allsh)
+fracIn <- colSums(intronsh) / colSums(allsh)
 summary(fracIn)
 
 unique(format_condition(colnames(exon)))
@@ -130,7 +165,6 @@ message(glue("No. of significant DE genes (FDR < {alpha}): "),
 res_eisar$tab.ExIn <- add_ensembl_symbol(res_eisar$tab.ExIn)
 
 # Ratio of up and down regulated significant genes
-
 nUp <- nrow(filter(res_eisar$tab.ExIn, FDR < alpha & logFC > 0))
 nDown <- nrow(filter(res_eisar$tab.ExIn, FDR < alpha & logFC < 0))
 ratioUpDown <- nUp / nDown
@@ -141,7 +175,7 @@ MAplot <- ggplot(res_eisar$tab.ExIn, aes(x=logCPM, y=logFC)) +
   geom_point(color="lightgrey") +
   geom_point(data=res_eisar$tab.ExIn %>% filter(FDR < alpha),
              color="red") +
-  labs(title=glue("{gse}: {conditions[1]} vs. {conditions[2]}"),
+  labs(title=glue("{gse}: {conditions[2]} vs. {conditions[1]} (p < {alpha})"),
        caption=glue("UP={nUp}, DOWN={nDown}")) +
   theme_bw() +
   theme(plot.title=element_text(size=15, face="bold"),

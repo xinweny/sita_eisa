@@ -15,7 +15,7 @@ def get_organism(metadata_path):
     return organism_name.replace(' ', '_').lower()
 
 def get_samples(path, ext):
-    samples = set([os.path.basename(sample).replace(f".{ext}", '') for sample in glob.glob(f"{path}*.{ext}")
+    samples = set([os.path.basename(sample).replace(f".{ext}", '') for sample in glob.glob(f"{path}/*.{ext}")
               if not any(match in os.path.basename(sample) for match in ['trimmed', 'val'])])
 
     if LAYOUT == 'PAIRED':
@@ -25,17 +25,17 @@ def get_samples(path, ext):
 
 def get_raw_reads(wcs):
     if LAYOUT == 'PAIRED':  # Paired-end
-        return expand(f"{PREFIX}/fastq/{{sample}}_{{i}}.fq.gz", sample=SAMPLES, i=[1, 2])
+        return expand(f"{PREFIX}/fastq/{{sample}}_{{i}}.{EXT}", sample=SAMPLES, i=[1, 2])
 
     if LAYOUT == 'SINGLE':  # Single-end
-        return expand(f"{PREFIX}/fastq/{{sample}}.fq.gz", sample=SAMPLES)
+        return expand(f"{PREFIX}/fastq/{{sample}}.{EXT}", sample=SAMPLES)
 
 def get_trimmed_reads(wcs):
     if LAYOUT == 'PAIRED':  # Paired-end
-        return expand(f"{PREFIX}/fastq/{{sample}}_{{i}}_val_{{i}}.fq.gz", sample=SAMPLES, i=[1, 2])
+        return expand(f"{PREFIX}/fastq_trimmed/{{sample}}_{{i}}_val_{{i}}.fq.gz", sample=SAMPLES, i=[1, 2])
 
     if LAYOUT == 'SINGLE':  # Single-end
-        return expand(f"{PREFIX}/fastq/{{sample}}_trimmed.fq.gz", sample=SAMPLES)
+        return expand(f"{PREFIX}/fastq_trimmed/{{sample}}_trimmed.fq.gz", sample=SAMPLES)
 
 def get_fastqc(wcs):
     if LAYOUT == 'PAIRED':  # Paired-end
@@ -59,6 +59,7 @@ workdir: config['base']
 localrules: all, multiqc
 
 PREFIX = f"data/{config['GSE']}"
+EXT = custom_param('ext', 'fq.gz')
 
 if os.path.exists(f"{PREFIX}/SraRunTable_{config['GSE']}.txt"):
     LAYOUT = get_layout(f"{PREFIX}/SraRunTable_{config['GSE']}.txt")
@@ -67,40 +68,47 @@ else:
     LAYOUT = config['layout']
     ORGANISM = config['organism']
 
+SAMPLES = get_samples(f"{PREFIX}/fastq", EXT)
+
 #### Workflow ####
 rule all:
     input:
         f"{PREFIX}/processed/{config['GSE']}_ExonicCounts.txt",
         f"{PREFIX}/processed/{config['GSE']}_IntronicCounts.txt",
         f"{PREFIX}/qc/multiqc_report.html"
+    params:
+        job_name = f"{config['GSE']}_ALL"
+    resources:
+        time_min = 1,
+        cpus = 1
 
 rule trimgalore_single:
     input:
         get_raw_reads
     output:
-        expand(f"{PREFIX}/fastq/{{sample}}_trimmed.fq.gz", sample=SAMPLES)
+        expand(f"{PREFIX}/fastq_trimmed/{{sample}}_trimmed.fq.gz", sample=SAMPLES)
     resources:
         time_min = int(custom_param('trim_time', 120)),
-        cpus = len(SAMPLES) if len(SAMPLES) < 32 else 32
+        cpus = 20
     params:
         job_name = f"{config['GSE']}_TRIMSINGLE"
     shell:
         f"""trim_galore -j {{resources.cpus}} --stringency 3 \
-            -o {PREFIX}/fastq {{input}}"""
+            -o {PREFIX}/fastq_trimmed {{input}}"""
 
 rule trimgalore_paired:
     input:
         get_raw_reads
     output:
-        expand(f"{PREFIX}/fastq/{{sample}}_{{i}}_val_{{i}}.fq.gz", sample=SAMPLES, i=[1, 2])
+        expand(f"{PREFIX}/fastq_trimmed/{{sample}}_{{i}}_val_{{i}}.fq.gz", sample=SAMPLES, i=[1, 2])
     resources:
         time_min = int(custom_param('trim_time', 120)),
-        cpus = len(SAMPLES) * 2 if len(SAMPLES) < 16 else 32
+        cpus = 30
     params:
         job_name = f"{config['GSE']}_TRIMPAIRED"
     shell:
         f"""trim_galore -j {{resources.cpus}} --stringency 3 --paired \
-            -o {PREFIX}/fastq {{input}}"""
+            -o {PREFIX}/fastq_trimmed {{input}}"""
 
 rule fastqc_single:
     input:
@@ -110,8 +118,8 @@ rule fastqc_single:
     conda:
         "env/qc.yml"
     resources:
-        time_min = 120,
-        cpus = len(SAMPLES) if len(SAMPLES) < 32 else 32
+        time_min = 30,
+        cpus = len(SAMPLES) if len(SAMPLES) < 56 else 56
     params:
         job_name = f"{config['GSE']}_FASTQC"
     shell:
@@ -125,8 +133,8 @@ rule fastqc_paired:
     conda:
         "env/qc.yml"
     resources:
-        time_min = 120,
-        cpus = len(SAMPLES) * 2 if len(SAMPLES) < 16 else 32
+        time_min = 30,
+        cpus = len(SAMPLES) * 2 if len(SAMPLES) < 28 else 56
     params:
         job_name = f"{config['GSE']}_FASTQC"
     shell:
@@ -139,8 +147,8 @@ rule quasr_map_count:
         f"{PREFIX}/processed/{config['GSE']}_ExonicCounts.txt",
         f"{PREFIX}/processed/{config['GSE']}_IntronicCounts.txt"
     resources:
-        time_min = 720,
-        cpus = int(custom_param('quasr_cpus', len(SAMPLES) if len(SAMPLES) < 32 else 32))
+        time_min = int(custom_param('quasr_time', 360)),
+        cpus = int(custom_param('quasr_cpus', 56))
     params:
         job_name = f"{config['GSE']}_QUASRALIGNCOUNT",
         spliced = str(custom_param('spliced', 'TRUE')),
@@ -167,11 +175,14 @@ rule quasr_map_count:
 
 rule multiqc:
     input:
-        qc_report = get_fastqc,
-        exon_count = f"{PREFIX}/processed/{config['GSE']}_ExonicCounts.txt",
-        intron_count = f"{PREFIX}/processed/{config['GSE']}_IntronicCounts.txt"
+        qc_report = get_fastqc
     output:
         f"{PREFIX}/qc/multiqc_report.html"
+    params:
+        job_name = f"{config['GSE']}_MULTIQC"
+    resources:
+        time_min = 10,
+        cpus = 1
     conda:
         "env/qc.yml"
     shell:
