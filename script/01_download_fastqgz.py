@@ -37,56 +37,52 @@ def scrape_sample_names(gse):
 
     return gsm_sample
 
-def aspera_download(srr, paired=False):
-    if paired == True:
+def aspera_download(srr, ext, paired=False):
+    if paired:
         sys_value = 0
 
         for i in [1, 2]:
             sys_val = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
                         era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/00{srr[-1]}/{srr}/{srr}_{i}.fastq.gz \
-                        ./{srr}_{i}.fq.gz")
+                        ./fastq/{srr}_{i}.{ext}")
 
             if sys_val == 256:
                 print("Retrying new ftp...")
                 sys_val = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
                             era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/0{srr[-2:]}/{srr}/{srr}_{i}.fastq.gz \
-                            ./{srr}_{i}.fq.gz")
+                            ./fastq/{srr}_{i}.{ext}")
 
             if sys_val == 256:
                 print("Retrying new ftp...")
                 sys_val = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
                             era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/{srr}/{srr}_{i}.fastq.gz \
-                            ./{srr}_{i}.fq.gz")
+                            ./fastq/{srr}_{i}.{ext}")
 
             sys_value += sys_val
 
     else:
         sys_val = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
                     era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/00{srr[-1]}/{srr}/{srr}.fastq.gz \
-                    ./{srr}.fq.gz")
+                    ./fastq/{srr}.{ext}")
 
         if sys_val == 256:
             print("Retrying new ftp...")
             sys_val = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
                         era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/0{srr[-2:]}/{srr}/{srr}.fastq.gz \
-                        ./{srr}.fq.gz")
+                        ./fastq/{srr}.{ext}")
 
         if sys_val == 256:
             print("Retrying new ftp...")
             sys_val = os.system(f"ascp -QT -l 1000m -P33001 -i ~/.aspera/cli/etc/asperaweb_id_dsa.openssh \
                         era-fasp@fasp.sra.ebi.ac.uk:/vol1/fastq/{srr[0:6]}/{srr}/{srr}.fastq.gz \
-                        ./{srr}.fq.gz")
+                        ./fastq/{srr}.{ext}")
 
         sys_value = sys_val
 
     return sys_value
 
 def samplename_from_metadata(gsm, metadata_df, columns):
-<<<<<<< HEAD
-    info = [str(metadata_df.loc[metadata_df['Sample Name'] == gsm, col].iloc[0]) for col in columns]
-=======
     info = [metadata_df.loc[metadata_df['Sample Name'] == gsm, col].iloc[0] for col in columns]
->>>>>>> 659a09d652073412978158006cc0255ee77b6d5c
     name = re.sub(r'[\/:]', "", '_'.join(info))
 
     return name
@@ -115,10 +111,13 @@ def main():
     # Parser
     parser = argparse.ArgumentParser(description='Download fq.gz files from SRA')
     parser.add_argument('-m', required=True, help='Path to SRA run table metadata.')
-    parser.add_argument('-c', nargs='?', const='', required=True, help='Columns in metadata table for naming, separated by |. If given sample name on GSE page is preferred, leave as an empty string.')
+    parser.add_argument('-c', nargs='?', const='', help='Columns in metadata table for naming, separated by |. If given sample name on GSE page is preferred, leave as an empty string.')
+    parser.add_argument('-e', nargs='?', const='fq.gz', default='fq.gz', help='Extension name (default: fq.gz)')
 
     args = parser.parse_args()
     metadata_path = args.m
+    ext = args.e
+
     columns = (args.c).split('|')
 
     if args.c == '':
@@ -128,17 +127,16 @@ def main():
     gsms = metadata_df['Sample Name'].unique()
 
     # Set up file architecture
-    os.system("mkdir bam cache processed fastq")
-    os.chdir("fastq")
+    os.system("mkdir fastq")
 
     for i, gsm in enumerate(gsms):
         print(f"({i + 1}/{len(gsms)}) Processing {gsm}...")
 
-        if len([file for file in glob.glob(f"{gsm}*.fq.gz")]) > 0:
-            print(f"{gsm}*.fq.gz already downloaded. Skipping...")
+        if len([file for file in glob.glob(f"fastq/{gsm}*.{ext}")]) > 0:
+            print(f"{gsm}*.{ext} already downloaded. Skipping...")
             continue
 
-        gsm_srrs = metadata_df.loc[metadata_df['Sample Name'] == gsm, 'Run']
+        gsm_srrs = list(metadata_df.loc[metadata_df['Sample Name'] == gsm, 'Run'])
         name = gsm_samples[gsm] if args.c == '' else samplename_from_metadata(gsm, metadata_df, columns)
 
         not_all_downloaded = True
@@ -148,7 +146,7 @@ def main():
 
             for srr in list(gsm_srrs):
                 print(f"Downloading {srr}...")
-                sys_value = aspera_download(srr, paired=is_paired(metadata_df, 'Run', srr))
+                sys_value = aspera_download(srr, ext, paired=is_paired(metadata_df, 'Run', srr))
 
                 sys_values[srr] = sys_value
 
@@ -156,22 +154,30 @@ def main():
 
         if len(gsm_srrs) == 1:
             print(f"Renaming fastq files for {gsm}...")
-            srr = gsm_srrs.iloc[0]
+            srr = gsm_srrs[0]
 
             if is_paired(metadata_df, 'Run', srr):
                 for i in [1, 2]:
-                    os.system(f"mv -v '{srr}_{i}.fq.gz' '{gsm}_{name}_{i}.fq.gz'")
+                    os.system(f"mv -v fastq/'{srr}_{i}.{ext}' fastq/'{gsm}_{name}_{i}.{ext}'")
             else:
-                os.system(f"mv -v '{srr}.fq.gz' '{gsm}_{name}.fq.gz'")
+                os.system(f"mv -v fastq/'{srr}.{ext}' fastq/'{gsm}_{name}.{ext}'")
         else:
             print(f"Merging technical runs and renaming fastq files for {gsm}...")
             if is_paired(metadata_df, 'Run', srr):
                 for i in [1, 2]:
-                    single_fqs = ' '.join(gsm_srrs + f"_{i}.fq.gz")
-                    os.system(f"cat {single_fqs} > '{gsm}_{name}_{i}.fq.gz' && rm {single_fqs}")
+                    srr_filenames = [f"fastq/{srr}_{i}.{ext}" for srr in gsm_srrs]
+                    srr_fqs = ' '.join(srr_filenames)
+
+                    merge_command = f"cat {srr_fqs} > fastq/'{gsm}_{name}_{i}.{ext}' && rm {srr_fqs}"
+                    print(merge_command)
+                    os.system(merge_command)
             else:
-                srr_fqs = ' '.join(gsm_srrs + '.fq.gz')
-                os.system(f"cat {srr_fqs} > '{gsm}_{name}.fq.gz' && rm {srr_fqs}")
+                srr_filenames = [f"fastq/{srr}.{ext}" for srr in gsm_srrs]
+                srr_fqs = ' '.join(srr_filenames)
+
+                merge_command = f"cat {srr_fqs} > 'fastq/{gsm}_{name}.{ext}' && rm {srr_fqs}"
+                print(merge_command)
+                os.system(merge_command)
 
 #### Execute code ####
 if __name__ == "__main__":

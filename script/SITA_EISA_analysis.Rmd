@@ -60,7 +60,7 @@ add_ensembl_symbol <- function (table) {
 }
 
 format_condition <- function (colnames) {
-  replace <- c("_[0-9]*$", "_rep[0-9]*$", "^[A-Z]{3}[0-9]+_", "^[0-9]+_")
+  replace <- c("_[0-9]*$", "_[rR]ep[0-9]*$", "^GSM[0-9]+_", "^[0-9]+_")
   
   for (r in replace) {
     colnames <- gsub(r, "", colnames)
@@ -74,8 +74,8 @@ format_condition <- function (colnames) {
 Takes raw count tables of introns and exons obtained using the package QuasR. Details on how to obtain count tables for this analysis [here](https://rdrr.io/github/fmicompbio/eisaR/f/vignettes/eisaR.Rmd).
 ```{r load.data}
 #### Parameters ####
-gse <- "GSE47817"
-selectConditions <- c("HSC_M04", "HSC_M24") # control vs. treatment
+gse <- "GSE126151"
+selectConditions <- c("K562_Control", "K562_HSP90i") # control vs. treatment
 alpha <- 0.05
 
 #### Load data ####
