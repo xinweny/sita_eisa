@@ -48,7 +48,8 @@ add_ensembl_symbol <- function (table) {
   geneList <- getBM(filters=filter,
                     attributes=c(filter, symbol),
                     values=genes,
-                    mart=mart) %>% distinct(ensembl_gene_id, .keep_all=TRUE)
+                    mart=mart) %>% 
+    distinct(if (ensemblDataset == "wbps_gene") wbps_gene_id else ensembl_gene_id, .keep_all=TRUE)
   
   row.names(geneList) <- geneList[, 1]
   geneList[, 1] <- NULL
@@ -74,8 +75,8 @@ format_condition <- function (colnames) {
 Takes raw count tables of introns and exons obtained using the package QuasR. Details on how to obtain count tables for this analysis [here](https://rdrr.io/github/fmicompbio/eisaR/f/vignettes/eisaR.Rmd).
 ```{r load.data}
 #### Parameters ####
-gse <- "GSE126151"
-selectConditions <- c("K562_Control", "K562_HSP90i") # control vs. treatment
+gse <- "CUS000001"
+selectConditions <- c("D1_control", "D1_30minHS") # control vs. treatment
 alpha <- 0.05
 
 #### Load data ####
