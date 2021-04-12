@@ -2,12 +2,16 @@ import argparse
 import pandas as pd
 import os, glob, sys
 
-def make_samplefile(ext, layout):
+def make_samplefile(ext, layout, trimmed):
     if layout == "PAIRED":
         sample_file = pd.DataFrame(columns=['FileName1', 'FileName2', 'SampleName'])
 
-        pair1_files = [file for file in glob.glob(f"fastq/*_1.{ext}")]
-        pair2_files = [file for file in glob.glob(f"fastq/*_2.{ext}")]
+        if trimmed:
+            pair1_files = [file for file in glob.glob(f"./fastq_trimmed/*_1_val_1.{ext}")]
+            pair2_files = [file for file in glob.glob(f"./fastq_trimmed/*_2_val_2.{ext}")]
+        else:
+            pair1_files = [file for file in glob.glob(f"./fastq/*_1.{ext}")]
+            pair2_files = [file for file in glob.glob(f"./fastq/*_2.{ext}")]
 
         if len(pair1_files) != len(pair2_files):
             sys.exit("Not all samples found in pairs.")
@@ -15,7 +19,10 @@ def make_samplefile(ext, layout):
         pair1_files.sort()
         pair2_files.sort()
 
-        sample_names = [file.split("/")[-1][:-(3 + len(ext))] for file in pair1_files]
+        if trimmed:
+            sample_names = [file.split("/")[-1][:-(9 + len(ext))] for file in pair1_files]
+        else:
+            sample_names = [file.split("/")[-1][:-(1 + len(ext))] for file in pair1_files]
 
         sample_file['FileName1'] = pair1_files
         sample_file['FileName2'] = pair2_files
@@ -23,10 +30,16 @@ def make_samplefile(ext, layout):
     else:
         sample_file = pd.DataFrame(columns=['FileName', 'SampleName'])
 
-        files = [file for file in glob.glob(f"fastq/*.{ext}") if not any(end in file for end in ['_1.fastq', '_2.fastq'])]
+        if trimmed:
+            files = [file for file in glob.glob(f"./fastq_trimmed/*_trimmed.{ext}")]
+        else:
+            files = [file for file in glob.glob(f"./fastq/*.{ext}")]
         files.sort()
 
-        sample_names = [file.split("/")[-1][:-(1 + len(ext))] for file in files]
+        if trimmed:
+            sample_names = [file.split("/")[-1][:-(9 + len(ext))] for file in files]
+        else:
+            sample_names = [file.split("/")[-1][:-(1 + len(ext))] for file in files]
 
         sample_file['FileName'] = files
         sample_file['SampleName'] = sample_names
@@ -35,27 +48,25 @@ def make_samplefile(ext, layout):
 
 def main():
     parser = argparse.ArgumentParser(description='Generate QuasR-format sample file.')
-    parser.add_argument('-m', required=True,
-                        help="Path to SraRunTable")
     parser.add_argument('-e', required=True,
                         help="Extension (e.g. fq, fastq, fastq.gz)")
+    parser.add_argument('-l', required=True,
+                        help="Library layout (SINGLE or PAIRED)")
+    parser.add_argument('-w', required=True,
+                        help="Working directory")
+    parser.add_argument('-t', default=False, action='store_true',  
+                        help="Trimmed")
 
     args = parser.parse_args()
     ext = args.e
-    metadata_path = args.m
+    trimmed = args.t
 
-    metadata_df = pd.read_csv(metadata_path, header=0, sep=',')
-    layout = list(metadata_df['LibraryLayout'].unique())
+    os.chdir(args.w)
 
-    if len(layout) == 1:
-        sample_file = make_samplefile(ext, layout[0])
+    layout = args.l.upper()
 
-        sample_file.to_csv(f"SampleFile_{layout[0]}.txt", header=True, index=False, sep='\t')
-    else:
-        for l in layout:
-            sample_file = make_samplefile(ext, l)
-            sample_file.to_csv(f"SampleFile_{l}.txt", header=True, index=False, sep='\t')
+    sample_file = make_samplefile(ext, layout, trimmed)
 
+    sample_file.to_csv(f"SampleFile_{layout}.txt", header=True, index=False, sep='\t')
 
-if __name__ == "__main__":
-    main()
+main()

@@ -75,7 +75,7 @@ format_condition <- function (colnames) {
 Takes raw count tables of introns and exons obtained using the package QuasR. Details on how to obtain count tables for this analysis [here](https://rdrr.io/github/fmicompbio/eisaR/f/vignettes/eisaR.Rmd).
 ```{r load.data}
 #### Parameters ####
-gse <- "CUS000001"
+gse <- "GSE132703"
 selectConditions <- c("D1_control", "D1_30minHS") # control vs. treatment
 alpha <- 0.05
 

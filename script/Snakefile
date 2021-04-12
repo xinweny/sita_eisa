@@ -60,6 +60,7 @@ localrules: all, multiqc
 
 PREFIX = f"data/{config['GSE']}"
 EXT = custom_param('ext', 'fq.gz')
+TRIM = custom_param('trim', 'True') == 'True'
 
 if os.path.exists(f"{PREFIX}/SraRunTable_{config['GSE']}.txt"):
     LAYOUT = get_layout(f"{PREFIX}/SraRunTable_{config['GSE']}.txt")
@@ -82,33 +83,34 @@ rule all:
         time_min = 1,
         cpus = 1
 
-rule trimgalore_single:
-    input:
-        get_raw_reads
-    output:
-        expand(f"{PREFIX}/fastq_trimmed/{{sample}}_trimmed.fq.gz", sample=SAMPLES)
-    resources:
-        time_min = int(custom_param('trim_time', 120)),
-        cpus = 20
-    params:
-        job_name = f"{config['GSE']}_TRIMSINGLE"
-    shell:
-        f"""trim_galore -j {{resources.cpus}} --stringency 3 \
-            -o {PREFIX}/fastq_trimmed {{input}}"""
+if TRIM:
+    rule trimgalore_single:
+        input:
+            get_raw_reads
+        output:
+            expand(f"{PREFIX}/fastq_trimmed/{{sample}}_trimmed.fq.gz", sample=SAMPLES)
+        resources:
+            time_min = int(custom_param('trim_time', 120)),
+            cpus = 20
+        params:
+            job_name = f"{config['GSE']}_TRIMSINGLE"
+        shell:
+            f"""trim_galore -j {{resources.cpus}} --stringency 3 \
+                -o {PREFIX}/fastq_trimmed {{input}}"""
 
-rule trimgalore_paired:
-    input:
-        get_raw_reads
-    output:
-        expand(f"{PREFIX}/fastq_trimmed/{{sample}}_{{i}}_val_{{i}}.fq.gz", sample=SAMPLES, i=[1, 2])
-    resources:
-        time_min = int(custom_param('trim_time', 120)),
-        cpus = 30
-    params:
-        job_name = f"{config['GSE']}_TRIMPAIRED"
-    shell:
-        f"""trim_galore -j {{resources.cpus}} --stringency 3 --paired \
-            -o {PREFIX}/fastq_trimmed {{input}}"""
+    rule trimgalore_paired:
+        input:
+            get_raw_reads
+        output:
+            expand(f"{PREFIX}/fastq_trimmed/{{sample}}_{{i}}_val_{{i}}.fq.gz", sample=SAMPLES, i=[1, 2])
+        resources:
+            time_min = int(custom_param('trim_time', 120)),
+            cpus = 30
+        params:
+            job_name = f"{config['GSE']}_TRIMPAIRED"
+        shell:
+            f"""trim_galore -j {{resources.cpus}} --stringency 3 --paired \
+                -o {PREFIX}/fastq_trimmed {{input}}"""
 
 rule fastqc_single:
     input:
@@ -142,7 +144,7 @@ rule fastqc_paired:
 
 rule quasr_map_count:
     input:
-        reads = get_trimmed_reads
+        reads = get_trimmed_reads if TRIM else get_raw_reads
     output:
         f"{PREFIX}/processed/{config['GSE']}_ExonicCounts.txt",
         f"{PREFIX}/processed/{config['GSE']}_IntronicCounts.txt"
@@ -151,18 +153,22 @@ rule quasr_map_count:
         cpus = int(custom_param('quasr_cpus', 56))
     params:
         job_name = f"{config['GSE']}_QUASRALIGNCOUNT",
+        fastq_dir = f"{PREFIX}/fastq_trimmed" if TRIM else f"{PREFIX}/fastq",
+        ext = "fq.gz" if TRIM else EXT,
+        trimmed = "-t" if TRIM else "",
         spliced = str(custom_param('spliced', 'TRUE')),
         fa_genome = config[ORGANISM]['fasta'],
         bed_genome = config[ORGANISM]['gene_bed'],
         gtf = config[ORGANISM]['gtf']
     run:
-        if not os.path.isdir(f"{PREFIX}/bam") or not os.path.isdir(f"{PREFIX}/cache"):
-            shell(f"mkdir {PREFIX}/bam {PREFIX}/cache")
+        if not os.path.isdir(f"{PREFIX}/bam"):
+            shell(f"mkdir {PREFIX}/bam")
+        if not os.path.isdir(f"{PREFIX}/cache"):
+            shell(f"mkdir {PREFIX}/cache")
 
-        if not os.path.isfile(f"{PREFIX}/SampleFile_{LAYOUT}.txt"):
-            shell(f"python3 script/generate_samplefile_trimmed.py \
-            -w {PREFIX} \
-            -l {LAYOUT} -e fq.gz")
+        shell(f"python3 script/generate_samplefile.py \
+        -w {PREFIX} {{params.trimmed}} \
+        -l {LAYOUT} -e {{params.ext}}")
 
         shell(f"""Rscript script/02_alignment_and_counting.R \
         -w {PREFIX} -a {{params.spliced}} \
