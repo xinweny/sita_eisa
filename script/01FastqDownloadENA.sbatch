@@ -10,25 +10,25 @@
 
 #! sbatch directives begin here ###############################
 #! Name of the job:
-#SBATCH -J STARGENOMEALIGN
+#SBATCH -J FASTQDOWNLOADENA
 #! Which project should be charged:
-#SBATCH -A SAWARKAR-SL3-CPU
+#SBATCH -A MRC-TOX-SL2-CPU
 #! How many whole nodes should be allocated?
 #SBATCH --nodes=1
 #! How many (MPI) tasks will there be in total? (<= nodes*32)
 #! The skylake/skylake-himem nodes have 32 CPUs (cores) each.
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=2
 #! How much wallclock time will be required?
-#SBATCH --time=06:00:00
+#SBATCH --time=03:00:00
 #! What types of email messages do you wish to receive?
-#SBATCH --mail-type=FAIL,BEGIN,END
+#SBATCH --mail-type=FAIL,END
 #! Uncomment this to prevent the job from being requeued (e.g. if
 #! interrupted by node failure or system downtime):
 ##SBATCH --no-requeue
 
 #! For 6GB per CPU, set "-p skylake"; for 12GB per CPU, set "-p skylake-himem":
-#SBATCH -p skylake
+#SBATCH -p cclake
 
 #! sbatch directives end here (put any additional directives above this line)
 
@@ -56,23 +56,18 @@ module purge                               # Removes all modules still loaded
 module load rhel7/default-peta4            # REQUIRED - loads the basic environment
 
 #! Insert additional module load commands after this line if needed:
-module load miniconda3-4.5.4-gcc-5.4.0-hivczbz
+module load miniconda/3
+
 source activate seq
 
 #! Full path to application executable:
-application="STAR"
+application="python3 /home/xwy21/project/shared/script/01_download_ena.py"
 
 #! Run options for the application:
-options="--runThreadN 8 \
-        --genomeDir ../shared/genome/STAR \
-        --readFilesIn DMSO_RNAseq_rep1.fastq \
-        --outFileNamePrefix DMSO_RNAseq_rep1 \
-        --outSAMtype BAM SortedByCoordinate \
-        --outSAMunmapped Within \
-        --outSAMattributes NH HI AS nM jM jI"
+options="-m ENA_$GSE.txt"
 
 #! Work directory (i.e. where the job will run):
-workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/sita"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
+workdir="/rds/project/rs2099/rds-rs2099-toxgenomics/sita_eisa/data/$GSE"  # The value of SLURM_SUBMIT_DIR sets workdir to the directory
                              # in which sbatch is run.
 
 #! Are you using OpenMP (NB this is unrelated to OpenMPI)? If so increase this
