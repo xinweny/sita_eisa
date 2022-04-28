@@ -1,11 +1,10 @@
 # SITA Analysis Pipeline with EISA
 A pipeline for the pairwise, comparative visualisation and analysis of stress-induced transcriptional attenuation (SITA) using exon-intron split analysis (EISA) of selected experimental conditions. This pipeline is written in [Snakemake](https://snakemake.readthedocs.io/en/stable/) and has scripts in Python and R, and is suitable for use with HPC systems.
 
-## Table of Contents
-TBD
+![Workflow of EISA RNA-seq pipeline](SITA EISA Pipeline Workflow.png?raw=true "Workflow of EISA RNA-seq pipeline")
 
 ## Background
-SITA is a rapidly-induced process in cells upon stress induction, causing global transcriptional changes where the proportion of genes downregulated is far greater than those upregulated during this process. TBC
+SITA is a rapidly-induced process in cells upon stress induction, causing global transcriptional changes where the proportion of genes downregulated is far greater than those upregulated during this process.
 
 <<<<<<< HEAD
 ## Setup
